@@ -6,7 +6,8 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route("/")
 def home():
-    return "Smart Cleanliness System is Running 🚀"
+    return render_template("home.html")
+
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
@@ -61,7 +62,16 @@ def login():
 
 @auth_bp.route("/citizen")
 def citizen_dashboard():
-    return "Citizen Dashboard"
+    return render_template("citizen_dashboard.html")
+
+@auth_bp.route("/report", methods=["GET", "POST"])
+def report():
+    if request.method == "POST":
+        # later we will save to DB
+        return redirect(url_for('auth.citizen_dashboard'))
+
+    return render_template("report.html")
+
 
 @auth_bp.route("/authority")
 def authority_dashboard():

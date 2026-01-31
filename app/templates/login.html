@@ -1,18 +1,26 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-</head>
-<body>
-    <h2>Login</h2>
-    <form method="POST">
-        <label>Email:</label><br>
-        <input type="email" name="email" required><br><br>
+{% extends "base.html" %}
+{% block content %}
 
-        <label>Password:</label><br>
-        <input type="password" name="password" required><br><br>
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card p-4">
+            <h3 class="text-center mb-3">Login</h3>
 
-        <button type="submit">Login</button>
-    </form>
-</body>
-</html>
+            <form method="POST">
+                <div class="mb-3">
+                    <label>Email</label>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Password</label>
+                    <input type="password" name="password" class="form-control" required>
+                </div>
+
+                <button class="btn btn-success w-100">Login</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
