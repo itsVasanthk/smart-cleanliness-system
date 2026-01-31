@@ -1,12 +1,32 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="mb-3">Citizen Dashboard</h2>
+<h2 class="mb-4 text-center">Citizen Dashboard</h2>
 
-<a href="/report" class="btn btn-success mb-3">Report Garbage</a>
+<div class="d-flex flex-column align-items-center gap-4">
 
-<div class="card p-3">
-    <p>No complaints submitted yet.</p>
+    <!-- Report Garbage Card -->
+    <div class="card dashboard-card text-center p-4">
+        <h4>Report Garbage</h4>
+        <p class="mt-2">
+            Report cleanliness and waste-related issues in your area.
+        </p>
+        <a href="/report" class="btn btn-success mt-3">
+            Report Now
+        </a>
+    </div>
+
+    <!-- Awareness Card -->
+    <div class="card dashboard-card text-center p-4">
+        <h4>Awareness</h4>
+        <p class="mt-2">
+            Learn about cleanliness, hygiene, and sustainability practices.
+        </p>
+        <a href="/awareness" class="btn btn-outline-success mt-3">
+            Explore
+        </a>
+    </div>
+
 </div>
 
 {% endblock %}

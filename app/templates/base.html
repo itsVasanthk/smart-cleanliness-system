@@ -52,6 +52,14 @@
     margin-top: -6px;
 }
 
+.dashboard-card {
+    width: 300px;
+    height: 260px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+
 
     </style>
 </head>
@@ -69,10 +77,19 @@
         </div>
 
         <!-- Right side links -->
-        <div class="d-flex gap-3">
-            <a class="btn btn-outline-light btn-sm" href="/login">Login</a>
-            <a class="btn btn-light btn-sm text-success" href="/register">Register</a>
+        <div class="d-flex gap-2 align-items-center">
+            {% if session.get('user_id') %}
+                <span class="text-white fw-semibold">
+                    Welcome, {{ session.get('name') }}
+                </span>
+                <a class="btn btn-light btn-sm text-success" href="/logout">Logout</a>
+            {% else %}
+                <a class="btn btn-outline-light btn-sm" href="/login">Login</a>
+                <a class="btn btn-light btn-sm text-success" href="/register">Register</a>
+            {% endif %}
         </div>
+
+
 
     </div>
 </nav>

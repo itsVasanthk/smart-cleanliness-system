@@ -41,20 +41,30 @@ def login():
         password = request.form['password']
 
         cur = mysql.connection.cursor()
-        cur.execute("SELECT user_id, password, role FROM users WHERE email=%s", (email,))
+        cur.execute(
+            "SELECT user_id, name, password, role FROM users WHERE email=%s",
+            (email,)
+        )
         user = cur.fetchone()
         cur.close()
 
-        if user and check_password_hash(user[1], password):
-            session['user_id'] = user[0]
-            session['role'] = user[2]
+        if user and check_password_hash(user[2], password):
+            role = user[3].strip().lower()   # 🔥 IMPORTANT LINE
 
-            if user[2] == 'citizen':
+            print("DEBUG ROLE VALUE ->", repr(role))  # 🔍 DEBUG
+
+            session['user_id'] = user[0]
+            session['name'] = user[1]
+            session['role'] = role
+
+            if role == 'citizen':
                 return redirect(url_for('auth.citizen_dashboard'))
-            elif user[2] == 'authority':
+            elif role == 'authority':
                 return redirect(url_for('auth.authority_dashboard'))
-            else:
+            elif role == 'admin':
                 return redirect(url_for('auth.admin_dashboard'))
+            else:
+                return "Unknown role: " + role
 
         return "Invalid email or password"
 
@@ -80,4 +90,9 @@ def authority_dashboard():
 @auth_bp.route("/admin")
 def admin_dashboard():
     return "Admin Dashboard"
+
+@auth_bp.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for('auth.home'))
 

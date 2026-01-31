@@ -39,8 +39,27 @@
 </div>
 
 <div class="text-center mt-5">
-    <a href="/register" class="btn btn-success btn-lg me-2">Get Started</a>
-    <a href="/login" class="btn btn-outline-success btn-lg">Login</a>
+    {% if session.get('user_id') %}
+
+        {% if session.get('role') == 'citizen' %}
+            <a href="/citizen" class="btn btn-success btn-lg">
+                Go to Citizen Dashboard
+            </a>
+        {% elif session.get('role') == 'authority' %}
+            <a href="/authority" class="btn btn-success btn-lg">
+                Go to Authority Dashboard
+            </a>
+        {% else %}
+            <a href="/admin" class="btn btn-success btn-lg">
+                Go to Admin Dashboard
+            </a>
+        {% endif %}
+
+    {% else %}
+        <a href="/register" class="btn btn-success btn-lg me-2">Get Started</a>
+        <a href="/login" class="btn btn-outline-success btn-lg">Login</a>
+    {% endif %}
 </div>
+
 
 {% endblock %}
