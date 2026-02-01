@@ -6,10 +6,11 @@
         <div class="card p-4">
             <h3 class="mb-3 text-center">Report Garbage</h3>
 
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
+
                 <div class="mb-3">
                     <label>Garbage Type</label>
-                    <select name="garbage_type" class="form-control">
+                    <select name="garbage_type" class="form-control" required>
                         <option>Dry Waste</option>
                         <option>Wet Waste</option>
                         <option>Plastic</option>
@@ -20,7 +21,11 @@
 
                 <div class="mb-3">
                     <label>Description</label>
-                    <textarea name="description" class="form-control"></textarea>
+                    <textarea name="description" class="form-control" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label>Upload Image (optional)</label>
+                    <input type="file" name="image" class="form-control" accept="image/*">
                 </div>
 
                 <button class="btn btn-success w-100">Submit</button>
