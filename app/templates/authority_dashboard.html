@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="mb-4 text-center">Authority Dashboard</h2>
+
+{% if complaints %}
+<table class="table table-bordered table-striped">
+    <thead class="table-success">
+        <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Image</th>
+            <th>Status</th>
+            <th>Update</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in complaints %}
+        <tr>
+            <td>{{ c[0] }}</td>
+            <td>{{ c[1] }}</td>
+            <td>{{ c[2] }}</td>
+            <td>
+                {% if c[3] %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ c[3]) }}" width="80">
+                {% else %}
+                    No Image
+                {% endif %}
+            </td>
+            <td>{{ c[4] }}</td>
+            <td>
+                <form method="POST" action="/authority/update/{{ c[0] }}">
+                    <select name="status" class="form-control form-control-sm mb-1">
+                        <option {% if c[4]=='Pending' %}selected{% endif %}>Pending</option>
+                        <option {% if c[4]=='In Progress' %}selected{% endif %}>In Progress</option>
+                        <option {% if c[4]=='Completed' %}selected{% endif %}>Completed</option>
+                    </select>
+                    <button class="btn btn-success btn-sm">Update</button>
+                </form>
+            </td>
+            <td>{{ c[5] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="text-center">No complaints found.</p>
+{% endif %}
+
+{% endblock %}

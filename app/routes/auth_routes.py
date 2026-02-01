@@ -135,13 +135,44 @@ def report():
 
 
 
-@auth_bp.route("/authority")
-def authority_dashboard():
-    return "Authority Dashboard"
+@auth_bp.route("/authority/update/<int:complaint_id>", methods=["POST"])
+def update_complaint_status(complaint_id):
+    if 'user_id' not in session or session.get('role') != 'authority':
+        return redirect(url_for('auth.login'))
+
+    new_status = request.form['status']
+
+    cur = mysql.connection.cursor()
+    cur.execute(
+        "UPDATE complaints SET status=%s WHERE complaint_id=%s",
+        (new_status, complaint_id)
+    )
+    mysql.connection.commit()
+    cur.close()
+
+    return redirect(url_for('auth.authority_dashboard'))
+
 
 @auth_bp.route("/admin")
 def admin_dashboard():
     return "Admin Dashboard"
+@auth_bp.route("/authority")
+def authority_dashboard():
+    if 'user_id' not in session or session.get('role') != 'authority':
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+    cur.execute(
+        """
+        SELECT complaint_id, garbage_type, description, image, status, created_at
+        FROM complaints
+        ORDER BY created_at DESC
+        """
+    )
+    complaints = cur.fetchall()
+    cur.close()
+
+    return render_template("authority_dashboard.html", complaints=complaints)
 
 @auth_bp.route("/logout")
 def logout():
