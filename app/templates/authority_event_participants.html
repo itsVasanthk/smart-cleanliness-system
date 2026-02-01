@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="mb-3 text-center">Event Participants</h2>
+
+<div class="card p-3 mb-3">
+    <h4>{{ event[0] }}</h4>
+    <p><strong>Credits:</strong> {{ event[1] }}</p>
+    <p><strong>Status:</strong> {{ event[2] }}</p>
+</div>
+
+{% if participants %}
+<table class="table table-bordered">
+    <thead class="table-success">
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in participants %}
+        <tr>
+            <td>{{ p[1] }}</td>
+            <td>{{ p[2] }}</td>
+            <td>{{ p[3] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if event[2] != 'Completed' %}
+    <a href="/authority/event/complete/{{ event_id }}"
+       class="btn btn-success mt-3">
+        Mark Event Completed & Award Credits
+    </a>
+{% endif %}
+
+{% else %}
+<p>No participants yet.</p>
+{% endif %}
+
+{% endblock %}

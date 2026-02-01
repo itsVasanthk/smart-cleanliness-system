@@ -20,6 +20,10 @@ def create_app():
     from app.routes.awareness_routes import awareness_bp
     app.register_blueprint(awareness_bp)
 
+    from app.routes.volunteer_routes import volunteer_bp
+    app.register_blueprint(volunteer_bp)
+
+
 
 
     return app

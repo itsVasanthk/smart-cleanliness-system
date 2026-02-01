@@ -153,6 +153,148 @@ def update_complaint_status(complaint_id):
     return redirect(url_for('auth.authority_dashboard'))
 
 
+@auth_bp.route("/authority/events", methods=["GET", "POST"])
+def authority_events():
+    if 'user_id' not in session or session.get('role') != 'authority':
+        return redirect(url_for('auth.login'))
+
+    if request.method == "POST":
+        title = request.form['title']
+        area = request.form['area']
+        description = request.form['description']
+        event_date = request.form['event_date']
+        credit_points = request.form['credit_points']
+        created_by = session['user_id']
+
+        cur = mysql.connection.cursor()
+        cur.execute(
+            """
+            INSERT INTO cleaning_events
+            (title, area, description, event_date, credit_points, created_by)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (title, area, description, event_date, credit_points, created_by)
+        )
+        mysql.connection.commit()
+        cur.close()
+
+        return redirect(url_for('auth.authority_events'))
+
+    # Fetch events created by this authority
+    cur = mysql.connection.cursor()
+    cur.execute(
+        """
+        SELECT event_id, title, area, event_date, credit_points, status
+        FROM cleaning_events
+        WHERE created_by = %s
+        ORDER BY event_date DESC
+        """,
+        (session['user_id'],)
+    )
+    events = cur.fetchall()
+    cur.close()
+
+    return render_template("authority_events.html", events=events)
+
+
+@auth_bp.route("/authority/event/<int:event_id>")
+def view_event_participants(event_id):
+    if 'user_id' not in session or session.get('role') != 'authority':
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+
+    # Get event details
+    cur.execute(
+        "SELECT title, credit_points, status FROM cleaning_events WHERE event_id=%s",
+        (event_id,)
+    )
+    event = cur.fetchone()
+
+    # Get participants
+    cur.execute(
+        """
+        SELECT ep.participant_id, u.name, u.email, ep.status
+        FROM event_participants ep
+        JOIN users u ON ep.user_id = u.user_id
+        WHERE ep.event_id = %s
+        """,
+        (event_id,)
+    )
+    participants = cur.fetchall()
+
+    cur.close()
+
+    return render_template(
+        "authority_event_participants.html",
+        event=event,
+        event_id=event_id,
+        participants=participants
+    )
+
+
+@auth_bp.route("/authority/event/complete/<int:event_id>")
+def complete_event(event_id):
+    if 'user_id' not in session or session.get('role') != 'authority':
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+
+    # Get event credit points
+    cur.execute(
+        "SELECT credit_points FROM cleaning_events WHERE event_id=%s",
+        (event_id,)
+    )
+    points = cur.fetchone()[0]
+
+    # Get participants
+    cur.execute(
+        "SELECT participant_id, user_id FROM event_participants WHERE event_id=%s",
+        (event_id,)
+    )
+    participants = cur.fetchall()
+
+    for p in participants:
+        participant_id, user_id = p
+
+        # Get volunteer_id
+        cur.execute(
+            "SELECT volunteer_id FROM volunteers WHERE user_id=%s",
+            (user_id,)
+        )
+        volunteer = cur.fetchone()
+
+        if volunteer:
+            volunteer_id = volunteer[0]
+
+            # Award credits
+            cur.execute(
+                """
+                INSERT INTO carbon_credits (volunteer_id, points, activity)
+                VALUES (%s, %s, %s)
+                """,
+                (volunteer_id, points, "Cleaning Event Participation")
+            )
+
+            # Update participant status
+            cur.execute(
+                "UPDATE event_participants SET status='Credited' WHERE participant_id=%s",
+                (participant_id,)
+            )
+
+    # Mark event completed
+    cur.execute(
+        "UPDATE cleaning_events SET status='Completed' WHERE event_id=%s",
+        (event_id,)
+    )
+
+    mysql.connection.commit()
+    cur.close()
+
+    return redirect(url_for('auth.authority_events'))
+
+
+
 @auth_bp.route("/admin")
 def admin_dashboard():
     return "Admin Dashboard"

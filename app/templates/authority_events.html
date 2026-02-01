@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="mb-4 text-center">Manage Cleaning Events</h2>
+
+<!-- ================= CREATE EVENT FORM ================= -->
+<div class="card p-4 mb-4">
+    <h4>Create New Event</h4>
+
+    <form method="POST">
+        <div class="mb-3">
+            <label>Event Title</label>
+            <input type="text" name="title" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Area</label>
+            <input type="text" name="area" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Description</label>
+            <textarea name="description" class="form-control"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label>Event Date</label>
+            <input type="date" name="event_date" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Carbon Credit Points</label>
+            <input type="number" name="credit_points" class="form-control" required>
+        </div>
+
+        <button class="btn btn-success">Create Event</button>
+    </form>
+</div>
+
+<!-- ================= EVENT LIST ================= -->
+<div class="card p-4">
+    <h4>Your Events</h4>
+
+    {% if events %}
+    <table class="table table-bordered mt-3">
+        <thead class="table-success">
+            <tr>
+                <th>Title</th>
+                <th>Area</th>
+                <th>Date</th>
+                <th>Credits</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in events %}
+            <tr>
+                <td>{{ e[1] }}</td>
+                <td>{{ e[2] }}</td>
+                <td>{{ e[3] }}</td>
+                <td>{{ e[4] }}</td>
+                <td>{{ e[5] }}</td>
+                <td>
+                    <a href="/authority/event/{{ e[0] }}"
+                       class="btn btn-sm btn-outline-success">
+                        View Participants
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No events created yet.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
