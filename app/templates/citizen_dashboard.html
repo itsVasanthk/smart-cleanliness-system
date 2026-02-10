@@ -1,73 +1,12 @@
-{% extends "base.html" %}
+{% extends "citizen_base.html" %}
+
 {% block content %}
+<h2>Welcome, {{ session.name }} 👋</h2>
+<p class="text-muted">
+    Use the menu on the left to report issues, track complaints, learn about cleanliness, or participate as a volunteer.
+</p>
 
-<h2 class="mb-4 text-center">Citizen Dashboard</h2>
-
-<!-- ROW 1 -->
-<div class="row justify-content-center g-4 mb-4">
-
-    <!-- Report Garbage Card -->
-    <div class="col-md-4 col-sm-6">
-        <div class="card dashboard-card text-center p-4">
-            <div class="card-content">
-                <h4>Report Garbage</h4>
-                <p class="mt-2">
-                    Report cleanliness and waste-related issues in your area.
-                </p>
-            </div>
-            <a href="/report" class="btn btn-success mt-3">
-                Report Now
-            </a>
-        </div>
-    </div>
-
-    <!-- Awareness Card -->
-    <div class="col-md-4 col-sm-6">
-        <div class="card dashboard-card text-center p-4">
-            <div class="card-content">
-                <h4>Awareness</h4>
-                <p class="mt-2">
-                    Learn about cleanliness, hygiene, and sustainability practices.
-                </p>
-            </div>
-            <a href="/awareness" class="btn btn-outline-success mt-3">
-                Explore
-            </a>
-        </div>
-    </div>
-
+<div class="alert alert-success mt-4">
+    🌱 Together, we can build a cleaner and healthier community.
 </div>
-
-<!-- ROW 2 -->
-<div class="row justify-content-center g-4">
-
-    <!-- My Reports -->
-    <div class="col-md-4 col-sm-6">
-        <div class="card dashboard-card text-center p-3">
-            <div class="card-content">
-                <h5>My Reports</h5>
-                <p>Track your reported issues</p>
-            </div>
-            <a href="/citizen/reports" class="btn btn-outline-success btn-sm mt-2">
-                View
-            </a>
-        </div>
-    </div>
-
-    <!-- Volunteer -->
-    <div class="col-md-3 col-sm-6">
-        <div class="card dashboard-card text-center p-3">
-            <div class="card-content">
-                <h5>Volunteer</h5>
-                <p>Join clean-up drives & earn carbon credits</p>
-            </div>
-            <a href="/volunteer" class="btn btn-outline-success btn-sm mt-2">
-                Volunteer
-            </a>
-        </div>
-    </div>
-
-
-</div>
-
 {% endblock %}
