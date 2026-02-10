@@ -27,11 +27,59 @@
                     <label>Upload Image (optional)</label>
                     <input type="file" name="image" class="form-control" accept="image/*">
                 </div>
+                <div class="mb-3">
+                    <label>Area</label>
+                    <input type="text" name="area" id="area" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Pincode</label>
+                    <input type="text" name="pincode" id="pincode" class="form-control" required>
+                </div>
+
 
                 <button class="btn btn-success w-100">Submit</button>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+        function (position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            // Reverse geocoding using OpenStreetMap (no API key)
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.address) {
+                        // Area
+                        if (data.address.suburb) {
+                            document.getElementById("area").value = data.address.suburb;
+                        } else if (data.address.village) {
+                            document.getElementById("area").value = data.address.village;
+                        } else if (data.address.city) {
+                            document.getElementById("area").value = data.address.city;
+                        }
+
+                        // Pincode
+                        if (data.address.postcode) {
+                            document.getElementById("pincode").value = data.address.postcode;
+                        }
+                    }
+                })
+                .catch(() => {
+                    console.log("Reverse geocoding failed");
+                });
+        },
+        function () {
+            alert("GPS permission denied. Please enter area and pincode manually.");
+        }
+    );
+}
+</script>
 
 {% endblock %}
