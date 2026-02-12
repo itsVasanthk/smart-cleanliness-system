@@ -30,8 +30,8 @@
 </table>
 
 {% if event[2] != 'Completed' %}
-    <a href="/authority/event/complete/{{ event_id }}"
-       class="btn btn-success mt-3">
+    <a href="{{ url_for('auth.complete_event', event_id=event_id) }}"
+        class="btn btn-outline-success">
         Mark Event Completed & Award Credits
     </a>
 {% endif %}

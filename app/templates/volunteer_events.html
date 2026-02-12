@@ -1,34 +1,30 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "citizen_base.html" %}
 
-<h2 class="text-center mb-4">Available Cleaning Events</h2>
+{% block content %}
+<h2>Available Cleaning Events 🧹</h2>
 
 {% if events %}
-<div class="row g-4">
-    {% for e in events %}
-    <div class="col-md-4">
-        <div class="card p-3 h-100">
-            <h5>{{ e[1] }}</h5>
-            <p><strong>Area:</strong> {{ e[2] }}</p>
-            <p><strong>Date:</strong> {{ e[3] }}</p>
-            <p><strong>Credits:</strong> {{ e[4] }}</p>
+    <div class="row">
+        {% for event in events %}
+        <div class="col-md-6 mb-4">
+            <div class="card p-3 shadow-sm">
+                <h5>{{ event[1] }}</h5>
+                <p><strong>Area:</strong> {{ event[2] }}</p>
+                <p><strong>Date:</strong> {{ event[3] }}</p>
+                <p><strong>Credits:</strong> {{ event[4] }}</p>
 
-            {% if e[0] in joined_events %}
-                <button class="btn btn-secondary btn-sm" disabled>
-                    Joined
-                </button>
-            {% else %}
-                <a href="/volunteer/join_event/{{ e[0] }}"
-                   class="btn btn-success btn-sm">
+                <a href="{{ url_for('auth.join_event', event_id=event[0]) }}" 
+                   class="btn btn-success">
                     Join Event
                 </a>
-            {% endif %}
+            </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
 {% else %}
-<p class="text-center">No upcoming events available.</p>
+    <div class="alert alert-info">
+        No upcoming events available.
+    </div>
 {% endif %}
 
 {% endblock %}

@@ -1,18 +1,39 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Awareness & Local Development</title>
-</head>
-<body>
-    <h1>Awareness & Community Development</h1>
+{% extends "citizen_base.html" %}
+{% block content %}
+<h2>Awareness & Community Education 🌿</h2>
+<p class="text-muted mb-4">
+    Learn about maintaining cleanliness in different public spaces.
+</p>
 
-    <ul>
-        <li><a href="/awareness/tourism">Tourism & Cleanliness</a></li>
-        <li><a href="/awareness/temples">Temples & Religious Places</a></li>
-        <li><a href="/awareness/food">Food Areas & Hygiene</a></li>
-        <li><a href="/awareness/rules">Cleanliness Rules & Tips</a></li>
-    </ul>
+<div class="row">
 
-    <a href="/">Back to Home</a>
-</body>
-</html>
+    <div class="col-md-6 mb-4">
+        <div class="card p-3 shadow-sm">
+            <h5>🏖 Tourism Areas</h5>
+            <p>Keep beaches and tourist spots clean. Avoid plastic littering.</p>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card p-3 shadow-sm">
+            <h5>🛕 Temples</h5>
+            <p>Maintain hygiene around religious places. Use proper waste bins.</p>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card p-3 shadow-sm">
+            <h5>🍴 Food Areas</h5>
+            <p>Ensure food waste is disposed properly to prevent contamination.</p>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card p-3 shadow-sm">
+            <h5>🏙 Public Spaces</h5>
+            <p>Report garbage immediately and encourage responsible behavior.</p>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
