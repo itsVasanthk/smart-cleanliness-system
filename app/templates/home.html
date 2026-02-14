@@ -1,65 +1,97 @@
 {% extends "base.html" %}
+
 {% block content %}
 
-<div class="text-center my-5">
-    <h1 class="fw-bold" style="color:#2E7D32;">Cleanerism</h1>
-    <p class="lead mt-3">
-        A Smart Cleanliness & Community Development Platform
-    </p>
-</div>
+<div class="container mt-5">
 
-<div class="row text-center mt-5">
-    <div class="col-md-4">
-        <div class="card p-4">
-            <h4>Awareness</h4>
-            <p>
-                Promotes cleanliness awareness across tourism, temples,
-                food areas, and public places.
-            </p>
-        </div>
+    <!-- Title -->
+    <div class="text-center mb-5">
+        <h1 class="text-success fw-bold">CleanCITY</h1>
+        <p class="text-muted">
+            A Smart Cleanliness & Community Development Platform
+        </p>
     </div>
 
-    <div class="col-md-4">
-        <div class="card p-4">
-            <h4>Citizen Participation</h4>
-            <p>
-                Citizens can report cleanliness issues and track their status digitally.
-            </p>
+    <!-- ROW 1 -->
+    <div class="row justify-content-center mb-4">
+
+        <!-- Register Complaint -->
+        <div class="col-md-5 mb-3">
+            <a href="{{ url_for('auth.report') }}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 hover-card">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">🗑 Register Complaint</h4>
+                        <p class="card-text text-muted">
+                            Report waste issues in your area using GPS and image proof.
+                        </p>
+                    </div>
+                </div>
+            </a>
         </div>
+
+        <!-- Awareness -->
+        <div class="col-md-5 mb-3">
+            <a href="{{ url_for('auth.awareness') }}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 hover-card">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">📘 Awareness</h4>
+                        <p class="card-text text-muted">
+                            Learn cleanliness guidelines and sustainability practices.
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
     </div>
 
-    <div class="col-md-4">
-        <div class="card p-4">
-            <h4>Volunteer & Sustainability</h4>
-            <p>
-                Volunteers earn carbon credit points by participating in clean-up activities.
-            </p>
+
+    <!-- ROW 2 -->
+    <div class="row justify-content-center">
+
+        <!-- Citizen Participation -->
+        <div class="col-md-5 mb-3">
+            <a href="{{ url_for('auth.citizen_dashboard') }}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 hover-card">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">👥 Citizen Participation</h4>
+                        <p class="card-text text-muted">
+                            Track your complaints, volunteer, and contribute.
+                        </p>
+                    </div>
+                </div>
+            </a>
         </div>
+
+        <!-- Locate Waste Area -->
+        <div class="col-md-5 mb-3">
+            <a href="{{ url_for('auth.locate_waste') }}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 hover-card">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">📍 Locate Waste Area</h4>
+                        <p class="card-text text-muted">
+                            View reported waste locations on map and nearby areas.
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
     </div>
+
 </div>
 
-<div class="text-center mt-5">
-    {% if session.get('user_id') %}
+<!-- Hover Effect -->
+<style>
+.hover-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
 
-        {% if session.get('role') == 'citizen' %}
-            <a href="/citizen" class="btn btn-success btn-lg">
-                Go to Citizen Dashboard
-            </a>
-        {% elif session.get('role') == 'authority' %}
-            <a href="/authority" class="btn btn-success btn-lg">
-                Go to Authority Dashboard
-            </a>
-        {% else %}
-            <a href="/admin" class="btn btn-success btn-lg">
-                Go to Admin Dashboard
-            </a>
-        {% endif %}
-
-    {% else %}
-        <a href="/register" class="btn btn-success btn-lg me-2">Get Started</a>
-        <a href="/login" class="btn btn-outline-success btn-lg">Login</a>
-    {% endif %}
-</div>
-
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    cursor: pointer;
+}
+</style>
 
 {% endblock %}

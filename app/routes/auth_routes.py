@@ -559,4 +559,11 @@ def authority_analytics():
         total_credits=total_credits
     )
 
+@auth_bp.route("/locate-waste")
+def locate_waste():
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+
+    return render_template("locate_waste.html")
+
 
