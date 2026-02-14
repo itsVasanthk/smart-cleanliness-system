@@ -292,22 +292,39 @@ def volunteer():
 
 @auth_bp.route("/volunteer/events")
 def volunteer_events():
+
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
 
+    user_id = session['user_id']
     cur = mysql.connection.cursor()
-    cur.execute(
-        """
+
+    # Get all events
+    cur.execute("""
         SELECT event_id, title, area, event_date, credit_points, status
         FROM cleaning_events
-        WHERE status = 'Upcoming'
-        ORDER BY event_date ASC
-        """
-    )
+        ORDER BY event_date DESC
+    """)
     events = cur.fetchall()
+
+    # Get events joined by this user
+    cur.execute("""
+        SELECT event_id FROM event_participants
+        WHERE user_id=%s
+    """, (user_id,))
+
+    joined = cur.fetchall()
+
+    joined_event_ids = [e[0] for e in joined]
+
     cur.close()
 
-    return render_template("volunteer_events.html", events=events)
+    return render_template(
+        "volunteer_events.html",
+        events=events,
+        joined_event_ids=joined_event_ids
+    )
+
 
 @auth_bp.route("/volunteer/join/<int:event_id>")
 def join_event(event_id):
@@ -419,23 +436,31 @@ def view_event_participants(event_id):
 
 @auth_bp.route("/authority/event/complete/<int:event_id>")
 def complete_event(event_id):
+
     if 'user_id' not in session or session.get('role') != 'authority':
         return redirect(url_for('auth.login'))
 
     cur = mysql.connection.cursor()
 
-    # Get credit points for this event
+    # Check if event already completed
     cur.execute(
-        "SELECT credit_points FROM cleaning_events WHERE event_id=%s",
+        "SELECT status, credit_points FROM cleaning_events WHERE event_id=%s",
         (event_id,)
     )
-    result = cur.fetchone()
+    event = cur.fetchone()
 
-    if not result:
+    if not event:
         cur.close()
+        flash("Event not found.", "danger")
         return redirect(url_for('auth.authority_events'))
 
-    points = result[0]
+    status, points = event
+
+    # 🚨 SAFETY CHECK
+    if status == "Completed":
+        cur.close()
+        flash("This event has already been completed and credits awarded.", "warning")
+        return redirect(url_for('auth.authority_events'))
 
     # Get participants
     cur.execute(
@@ -456,13 +481,18 @@ def complete_event(event_id):
         if volunteer:
             volunteer_id = volunteer[0]
 
-            # Insert carbon credits
+            # Insert credits
             cur.execute(
                 """
-                INSERT INTO carbon_credits (volunteer_id, points, activity)
+                INSERT INTO carbon_credits
+                (volunteer_id, points, activity)
                 VALUES (%s, %s, %s)
                 """,
-                (volunteer_id, points, "Cleaning Event Participation")
+                (
+                    volunteer_id,
+                    points,
+                    "Cleaning Event Participation"
+                )
             )
 
             # Update participant status
@@ -471,7 +501,7 @@ def complete_event(event_id):
                 (participant_id,)
             )
 
-    # Mark event as completed
+    # Mark event completed
     cur.execute(
         "UPDATE cleaning_events SET status='Completed' WHERE event_id=%s",
         (event_id,)
@@ -481,4 +511,52 @@ def complete_event(event_id):
     cur.close()
 
     flash("Event completed and credits awarded successfully!", "success")
+
     return redirect(url_for('auth.authority_events'))
+
+@auth_bp.route("/authority/analytics")
+def authority_analytics():
+
+    if 'user_id' not in session or session.get('role') != 'authority':
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+
+    # Total complaints
+    cur.execute("SELECT COUNT(*) FROM complaints")
+    total_complaints = cur.fetchone()[0]
+
+    # Pending complaints
+    cur.execute("SELECT COUNT(*) FROM complaints WHERE status='Pending'")
+    pending_complaints = cur.fetchone()[0]
+
+    # Resolved complaints
+    cur.execute("SELECT COUNT(*) FROM complaints WHERE status='Resolved'")
+    resolved_complaints = cur.fetchone()[0]
+
+    # Total events
+    cur.execute("SELECT COUNT(*) FROM cleaning_events")
+    total_events = cur.fetchone()[0]
+
+    # Total volunteers participated
+    cur.execute("SELECT COUNT(DISTINCT user_id) FROM event_participants")
+    total_volunteers = cur.fetchone()[0]
+
+    # Total credits awarded
+    cur.execute("SELECT SUM(points) FROM carbon_credits")
+    result = cur.fetchone()[0]
+    total_credits = result if result else 0
+
+    cur.close()
+
+    return render_template(
+        "authority_analytics.html",
+        total_complaints=total_complaints,
+        pending_complaints=pending_complaints,
+        resolved_complaints=resolved_complaints,
+        total_events=total_events,
+        total_volunteers=total_volunteers,
+        total_credits=total_credits
+    )
+
+

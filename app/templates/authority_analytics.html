@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2>Authority Analytics Dashboard</h2>
+<p class="text-muted mb-4">
+System overview and statistics
+</p>
+
+<div class="row">
+
+    <div class="col-md-4 mb-3">
+        <div class="card p-3 shadow-sm">
+            <h5>Total Complaints</h5>
+            <h2>{{ total_complaints }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card p-3 shadow-sm">
+            <h5>Pending Complaints</h5>
+            <h2 class="text-warning">{{ pending_complaints }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card p-3 shadow-sm">
+            <h5>Resolved Complaints</h5>
+            <h2 class="text-success">{{ resolved_complaints }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card p-3 shadow-sm">
+            <h5>Total Events</h5>
+            <h2>{{ total_events }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card p-3 shadow-sm">
+            <h5>Total Volunteers</h5>
+            <h2>{{ total_volunteers }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card p-3 shadow-sm">
+            <h5>Total Carbon Credits Awarded</h5>
+            <h2 class="text-success">{{ total_credits }}</h2>
+        </div>
+    </div>
+
+</div>
+
+</div>
+
+{% endblock %}
