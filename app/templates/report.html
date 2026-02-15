@@ -2,96 +2,168 @@
 
 {% block content %}
 
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card p-4">
-            <h3 class="mb-3 text-center">Report Garbage</h3>
+<div class="container mt-4">
+    <div class="card shadow-sm p-4">
 
-            <form method="POST" enctype="multipart/form-data">
+        <h3 class="text-center mb-4">Report Garbage</h3>
 
-                <div class="mb-3">
-                    <label>Garbage Type</label>
-                    <select name="garbage_type" class="form-control" required>
-                        <option>Dry Waste</option>
-                        <option>Wet Waste</option>
-                        <option>Plastic</option>
-                        <option>Overflowing Bin</option>
-                        <option>Open Dumping</option>
-                    </select>
+        <form method="POST" enctype="multipart/form-data">
+
+            <!-- Upload Image FIRST -->
+            <div class="mb-3">
+                <label class="form-label">Upload Image</label>
+
+                <input type="file" name="image" class="form-control" required>
+
+                <div class="alert alert-warning mt-2 mb-0 p-2">
+
+                    <strong>⚠️ Important:</strong><br>
+
+                    For better verification, uploading a real-time selfie at the location is recommended.<br>
+
+                    Uploaded images are used only for verification purposes and will be deleted automatically within 30 days.
+
                 </div>
 
-                <div class="mb-3">
-                    <label>Description</label>
-                    <textarea name="description" class="form-control" required></textarea>
-                </div>
-                <div class="mb-3">
-                    <label>Upload Image (optional)</label>
-                    <input type="file" name="image" class="form-control" accept="image/*">
-
-                    <small class="text-muted">
-                        📌 For better verification, uploading a real-time selfie at the location is recommended.
-                            Uploaded images are used only for verification purposes and will be deleted automatically within 30 days.
-                    </small>
-                </div>
-                <div class="mb-3">
-                    <label>Area</label>
-                    <input type="text" name="area" id="area" class="form-control" required>
-                </div>
-
-                <div class="mb-3">
-                    <label>Pincode</label>
-                    <input type="text" name="pincode" id="pincode" class="form-control" required>
-                </div>
+            </div>
 
 
-                <button class="btn btn-success w-100">Submit</button>
-                {% if error %}
-<div class="alert alert-danger">
-    {{ error }}
-</div>
-{% endif %}
+            <!-- Garbage Type Dropdown -->
+            <div class="mb-3">
+                <label class="form-label">Garbage Type</label>
 
-            </form>
-        </div>
+                <select name="garbage_type"
+                        id="garbage_type"
+                        class="form-control"
+                        required
+                        onchange="toggleOtherField()">
+
+                    <option value="">Select Garbage Type</option>
+                    <option value="Dry Waste">Dry Waste</option>
+                    <option value="Wet Waste">Wet Waste</option>
+                    <option value="Other">Other</option>
+
+                </select>
+            </div>
+
+
+            <!-- Other Description -->
+            <div class="mb-3" id="otherBox" style="display:none;">
+                <label class="form-label">Specify Other Type</label>
+
+                <textarea name="description"
+                          class="form-control"
+                          placeholder="Specify garbage type"></textarea>
+            </div>
+
+
+            <!-- Area -->
+            <div class="mb-3">
+                <label class="form-label">Area</label>
+
+                <input type="text"
+                       name="area"
+                       id="area"
+                       class="form-control"
+                       required>
+            </div>
+
+
+            <!-- Pincode -->
+            <div class="mb-3">
+                <label class="form-label">Pincode</label>
+
+                <input type="text"
+                       name="pincode"
+                       id="pincode"
+                       class="form-control"
+                       required>
+            </div>
+
+
+            <!-- Landmark -->
+            <div class="mb-3">
+                <label class="form-label">Landmark</label>
+
+                <input type="text"
+                       name="landmark"
+                       class="form-control"
+                       placeholder="Example: Near school, temple, bus stop">
+            </div>
+
+
+            <!-- Additional Description -->
+            <div class="mb-3">
+                <label class="form-label">Additional Description</label>
+
+                <textarea name="additional_description"
+                          class="form-control"
+                          placeholder="Optional extra details"></textarea>
+            </div>
+
+
+            <button type="submit" class="btn btn-success w-100">
+                Submit Report
+            </button>
+
+        </form>
+
     </div>
 </div>
 
+
 <script>
-if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-        function (position) {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
 
-            // Reverse geocoding using OpenStreetMap (no API key)
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.address) {
-                        // Area
-                        if (data.address.suburb) {
-                            document.getElementById("area").value = data.address.suburb;
-                        } else if (data.address.village) {
-                            document.getElementById("area").value = data.address.village;
-                        } else if (data.address.city) {
-                            document.getElementById("area").value = data.address.city;
-                        }
+/* Show Other box */
+function toggleOtherField()
+{
+    var type = document.getElementById("garbage_type").value;
+    var box = document.getElementById("otherBox");
 
-                        // Pincode
-                        if (data.address.postcode) {
-                            document.getElementById("pincode").value = data.address.postcode;
-                        }
-                    }
-                })
-                .catch(() => {
-                    console.log("Reverse geocoding failed");
-                });
-        },
-        function () {
-            alert("GPS permission denied. Please enter area and pincode manually.");
-        }
-    );
+    if(type === "Other")
+        box.style.display = "block";
+    else
+        box.style.display = "none";
 }
+
+
+/* AUTO GPS LOCATION */
+window.onload = function()
+{
+    if (navigator.geolocation)
+    {
+        navigator.geolocation.getCurrentPosition(success, error);
+    }
+}
+
+
+function success(position)
+{
+    var lat = position.coords.latitude;
+    var lon = position.coords.longitude;
+
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+    .then(response => response.json())
+    .then(data =>
+    {
+        document.getElementById("area").value =
+            data.address.suburb ||
+            data.address.city ||
+            data.address.town ||
+            data.address.village ||
+            "";
+
+        document.getElementById("pincode").value =
+            data.address.postcode || "";
+    });
+}
+
+
+function error()
+{
+    console.log("Location permission denied");
+}
+
 </script>
 
 {% endblock %}

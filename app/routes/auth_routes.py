@@ -112,74 +112,93 @@ def my_reports():
 # ---------------- REPORT (IMAGE HASH + AREA/PINCODE) ----------------
 @auth_bp.route("/report", methods=["GET", "POST"])
 def report():
+
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
 
     if request.method == "POST":
-        garbage_type = request.form['garbage_type']
-        description = request.form['description']
+
+        garbage_type = request.form.get('garbage_type')
+
+        # Handle Other type
+        if garbage_type == "Other":
+            other = request.form.get('description')
+            garbage_type = "Other - " + other
+
+        description = request.form.get('description')
         area = request.form.get('area')
         pincode = request.form.get('pincode')
+        landmark = request.form.get('landmark')
+
         user_id = session['user_id']
 
         image = request.files.get('image')
+
         image_name = None
         image_hash_value = None
 
-        if image and image.filename:
+        if image and image.filename != "":
+
             filename = secure_filename(image.filename)
             image_path = os.path.join(UPLOAD_FOLDER, filename)
 
-            # Generate perceptual hash
+            # Generate hash
             img = Image.open(image)
             image_hash_value = str(imagehash.phash(img))
 
-            # Reset stream before saving
             image.stream.seek(0)
 
             cur = mysql.connection.cursor()
+
             cur.execute(
                 "SELECT complaint_id FROM complaints WHERE image_hash=%s",
                 (image_hash_value,)
             )
+
             duplicate = cur.fetchone()
 
             if duplicate:
                 cur.close()
-                return render_template(
-                    "report.html",
-                    error="⚠️ This image was already used in a previous report. Please upload a new image taken at the location."
+
+                flash(
+                    "This image was already used in another report. Please upload a new image.",
+                    "danger"
                 )
 
+                return redirect(url_for('auth.report'))
 
             image.save(image_path)
             image_name = filename
+
             cur.close()
 
+        # Insert complaint
         cur = mysql.connection.cursor()
-        cur.execute(
-            """
+
+        cur.execute("""
             INSERT INTO complaints
-            (user_id, garbage_type, description, status, image,
-             area, pincode, image_hash)
-            VALUES (%s, %s, %s, 'Pending', %s, %s, %s, %s)
-            """,
-            (
-                user_id,
-                garbage_type,
-                description,
-                image_name,
-                area,
-                pincode,
-                image_hash_value
-            )
-        )
+            (user_id, garbage_type, description, image, area, pincode, landmark, status, image_hash)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,'Pending',%s)
+        """, (
+            user_id,
+            garbage_type,
+            description,
+            image_name,
+            area,
+            pincode,
+            landmark,
+            image_hash_value
+        ))
+
         mysql.connection.commit()
         cur.close()
+
+        flash("Complaint submitted successfully!", "success")
 
         return redirect(url_for('auth.citizen_dashboard'))
 
     return render_template("report.html")
+
 
 
 # ---------------- AUTHORITY DASHBOARD ----------------
