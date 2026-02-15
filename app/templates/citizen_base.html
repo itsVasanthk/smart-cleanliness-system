@@ -1,112 +1,146 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Citizen Dashboard</title>
+    <meta charset="UTF-8">
+    <title>CleanCITY</title>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        body {
-            background-color: #f4f6f9;
+
+        body
+        {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background-color: #f4f6f8;
         }
 
-        .sidebar {
+        /* LEFT SIDEBAR FIXED */
+        .sidebar
+        {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 240px;
             height: 100vh;
             background-color: #2e7d32;
+            color: white;
             padding-top: 20px;
+            overflow-y: auto;
         }
 
-        .sidebar h5 {
+        .sidebar h4
+        {
+            text-align: center;
+            margin-bottom: 30px;
             font-weight: bold;
         }
 
-        .sidebar a {
-            color: #fff;
+        .sidebar a
+        {
             display: block;
+            color: white;
             padding: 12px 20px;
             text-decoration: none;
-            margin-bottom: 5px;
-            border-radius: 6px;
         }
 
-        .sidebar a:hover {
+        .sidebar a:hover
+        {
             background-color: #1b5e20;
         }
 
-        .content {
-            padding: 30px;
+        /* RIGHT CONTENT AREA SCROLLS */
+        .content
+        {
+            margin-left: 240px;
+            padding: 20px;
+            height: 100vh;
+            overflow-y: auto;
         }
 
-        .topbar {
+        /* TOP BAR */
+        .topbar
+        {
+            background-color: #2e7d32;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-left: 240px;
+        }
+
+        .logout-btn
+        {
             background-color: white;
-            padding: 10px 20px;
-            border-bottom: 1px solid #ddd;
+            color: #2e7d32;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 5px;
         }
 
-        .logout-btn {
-            text-decoration: none;
-        }
     </style>
 </head>
-
 <body>
 
-<div class="container-fluid">
-    <div class="row">
 
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 sidebar">
-            <h5 class="text-center text-white mb-4">Citizen Menu</h5>
+<!-- SIDEBAR -->
+<div class="sidebar">
 
-            <a href="{{ url_for('auth.citizen_dashboard') }}">🏠 Dashboard</a>
-            <a href="{{ url_for('auth.report') }}">🗑 Report Garbage</a>
-            <a href="{{ url_for('auth.awareness') }}">📘 Awareness</a>
-            <a href="{{ url_for('auth.my_reports') }}">📄 My Reports</a>
-            <a href="{{ url_for('auth.volunteer') }}">🤝 Volunteer</a>
-        </div>
+    <h4>Citizen Menu</h4>
 
-        <!-- Main Content Area -->
-        <div class="col-md-9 col-lg-10 p-0">
+    <a href="{{ url_for('auth.citizen_dashboard') }}">🏠 Dashboard</a>
 
-            <!-- Topbar -->
-            <div class="topbar d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>Welcome, {{ session.get('name') }}</strong>
-                </div>
-                <div>
-                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm logout-btn">
-                        Logout
-                    </a>
-                </div>
-            </div>
+    <a href="{{ url_for('auth.report') }}">🗑 Report Garbage</a>
 
-            <!-- Page Content -->
-            <div class="content">
+    <a href="{{ url_for('auth.awareness') }}">📘 Awareness</a>
 
-                <!-- Flash Messages -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
+    <a href="{{ url_for('auth.my_reports') }}">📄 My Reports</a>
 
-                {% block content %}{% endblock %}
+    <a href="{{ url_for('auth.volunteer') }}">🤝 Volunteer</a>
 
-            </div>
-
-        </div>
-
-    </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<!-- TOP BAR -->
+<div class="topbar">
+
+    <div>
+        Welcome, {{ session.name }}
+    </div>
+
+    <div>
+        <a href="{{ url_for('auth.logout') }}">
+            <button class="logout-btn">Logout</button>
+        </a>
+    </div>
+
+</div>
+
+
+
+<!-- CONTENT -->
+<div class="content">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+
+
 
 </body>
 </html>
