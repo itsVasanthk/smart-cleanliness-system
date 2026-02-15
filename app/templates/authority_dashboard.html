@@ -20,43 +20,61 @@
 {% if complaints %}
 <table class="table table-bordered table-striped">
     <thead class="table-success">
-        <tr>
-            <th>ID</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Image</th>
-            <th>Status</th>
-            <th>Update</th>
-            <th>Date</th>
-        </tr>
-    </thead>
+<tr>
+
+<th>ID</th>
+<th>Type</th>
+<th>Description</th>
+<th>Image</th>
+<th>Area</th>
+<th>Pincode</th>
+<th>Landmark</th>
+<th>Status</th>
+<th>Date</th>
+
+</tr>
+</thead>
+
     <tbody>
         {% for c in complaints %}
-        <tr>
-            <td>{{ c[0] }}</td>
-            <td>{{ c[1] }}</td>
-            <td>{{ c[2] }}</td>
-            <td>
-                {% if c[3] %}
-                    <img src="{{ url_for('static', filename='uploads/' ~ c[3]) }}" width="80">
-                {% else %}
-                    No Image
-                {% endif %}
-            </td>
-            <td>{{ c[4] }}</td>
-            <td>
-                <form method="POST" action="/authority/update/{{ c[0] }}">
-                    <select name="status" class="form-control form-control-sm mb-1">
-                        <option {% if c[4]=='Pending' %}selected{% endif %}>Pending</option>
-                        <option {% if c[4]=='In Progress' %}selected{% endif %}>In Progress</option>
-                        <option {% if c[4]=='Completed' %}selected{% endif %}>Completed</option>
-                    </select>
-                    <button class="btn btn-success btn-sm">Update</button>
-                </form>
-            </td>
-            <td>{{ c[5] }}</td>
-        </tr>
-        {% endfor %}
+<tr>
+
+<td>{{ c[0] }}</td>
+
+<td>{{ c[1] }}</td>
+
+<td>{{ c[2] }}</td>
+
+<td>
+    {% if c[3] %}
+        <img src="{{ url_for('static', filename='uploads/' ~ c[3]) }}" width="80">
+    {% else %}
+        No Image
+    {% endif %}
+</td>
+
+<td>{{ c[4] }}</td>
+
+<td>{{ c[5] }}</td>
+
+<td>{{ c[6] }}</td>
+
+<td>
+    <form method="POST" action="{{ url_for('auth.update_complaint_status', complaint_id=c[0]) }}">
+        <select name="status" class="form-control">
+            <option value="Pending" {% if c[7]=='Pending' %}selected{% endif %}>Pending</option>
+            <option value="Resolved" {% if c[7]=='Resolved' %}selected{% endif %}>Resolved</option>
+        </select>
+        <button class="btn btn-success btn-sm mt-1">Update</button>
+    </form>
+</td>
+
+<td>{{ c[8].strftime('%d %b %Y, %I:%M %p') if c[8] else '' }}</td>
+
+</tr>
+{% endfor %}
+
+
     </tbody>
 </table>
 {% else %}

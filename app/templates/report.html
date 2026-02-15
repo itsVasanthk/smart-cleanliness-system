@@ -13,7 +13,7 @@
             <div class="mb-3">
                 <label class="form-label">Upload Image</label>
 
-                <input type="file" name="image" class="form-control" required>
+                <input type="file" name="image" class="form-control">
 
                 <div class="alert alert-warning mt-2 mb-0 p-2">
 
@@ -24,41 +24,45 @@
                     Uploaded images are used only for verification purposes and will be deleted automatically within 30 days.
 
                 </div>
-
             </div>
 
 
-            <!-- Garbage Type Dropdown -->
+            <!-- Garbage Type -->
             <div class="mb-3">
+
                 <label class="form-label">Garbage Type</label>
 
                 <select name="garbage_type"
-                        id="garbage_type"
                         class="form-control"
                         required
-                        onchange="toggleOtherField()">
+                        onchange="toggleOtherField(this)">
 
-                    <option value="">Select Garbage Type</option>
+                    <option value="">Select Type</option>
                     <option value="Dry Waste">Dry Waste</option>
                     <option value="Wet Waste">Wet Waste</option>
                     <option value="Other">Other</option>
 
                 </select>
+
             </div>
 
 
-            <!-- Other Description -->
+            <!-- Only field for Other -->
             <div class="mb-3" id="otherBox" style="display:none;">
-                <label class="form-label">Specify Other Type</label>
 
-                <textarea name="description"
-                          class="form-control"
-                          placeholder="Specify garbage type"></textarea>
+                <label class="form-label">Specify Garbage Type</label>
+
+                <input type="text"
+                       name="other_description"
+                       class="form-control"
+                       placeholder="Example: Medical waste, construction waste">
+
             </div>
 
 
             <!-- Area -->
             <div class="mb-3">
+
                 <label class="form-label">Area</label>
 
                 <input type="text"
@@ -66,11 +70,13 @@
                        id="area"
                        class="form-control"
                        required>
+
             </div>
 
 
             <!-- Pincode -->
             <div class="mb-3">
+
                 <label class="form-label">Pincode</label>
 
                 <input type="text"
@@ -78,32 +84,27 @@
                        id="pincode"
                        class="form-control"
                        required>
+
             </div>
 
 
             <!-- Landmark -->
             <div class="mb-3">
+
                 <label class="form-label">Landmark</label>
 
                 <input type="text"
                        name="landmark"
-                       class="form-control"
-                       placeholder="Example: Near school, temple, bus stop">
+                       class="form-control">
+
             </div>
 
 
-            <!-- Additional Description -->
-            <div class="mb-3">
-                <label class="form-label">Additional Description</label>
+            <button type="submit"
+                    class="btn btn-success w-100">
 
-                <textarea name="additional_description"
-                          class="form-control"
-                          placeholder="Optional extra details"></textarea>
-            </div>
-
-
-            <button type="submit" class="btn btn-success w-100">
                 Submit Report
+
             </button>
 
         </form>
@@ -114,56 +115,79 @@
 
 <script>
 
-/* Show Other box */
-function toggleOtherField()
+function toggleOtherField(select)
 {
-    var type = document.getElementById("garbage_type").value;
     var box = document.getElementById("otherBox");
 
-    if(type === "Other")
+    if(select.value === "Other")
         box.style.display = "block";
     else
         box.style.display = "none";
 }
 
 
-/* AUTO GPS LOCATION */
+
+//////////////////////////////////////////////////
+// AUTO GPS LOCATION — DOES NOT BREAK ANYTHING //
+//////////////////////////////////////////////////
+
 window.onload = function()
 {
-    if (navigator.geolocation)
+    getLocation();
+};
+
+
+function getLocation()
+{
+    if(navigator.geolocation)
     {
-        navigator.geolocation.getCurrentPosition(success, error);
+        navigator.geolocation.getCurrentPosition(
+            fillLocation,
+            locationError,
+            { enableHighAccuracy: true }
+        );
     }
 }
 
 
-function success(position)
+function fillLocation(position)
 {
     var lat = position.coords.latitude;
     var lon = position.coords.longitude;
 
-    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+    fetch(
+        "https://nominatim.openstreetmap.org/reverse?format=json&lat="
+        + lat +
+        "&lon=" +
+        lon
+    )
     .then(response => response.json())
     .then(data =>
     {
-        document.getElementById("area").value =
+        var area =
             data.address.suburb ||
-            data.address.city ||
-            data.address.town ||
+            data.address.neighbourhood ||
             data.address.village ||
+            data.address.town ||
+            data.address.city ||
             "";
 
-        document.getElementById("pincode").value =
+        var pincode =
             data.address.postcode || "";
+
+        document.getElementById("area").value = area;
+
+        document.getElementById("pincode").value = pincode;
     });
 }
 
 
-function error()
+function locationError()
 {
-    console.log("Location permission denied");
+    console.log("Location permission denied or unavailable");
 }
 
 </script>
+
 
 {% endblock %}

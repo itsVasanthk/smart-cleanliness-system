@@ -118,32 +118,43 @@ def report():
 
     if request.method == "POST":
 
+        user_id = session['user_id']
+
         garbage_type = request.form.get('garbage_type')
 
-        # Handle Other type
-        if garbage_type == "Other":
-            other = request.form.get('description')
-            garbage_type = "Other - " + other
+        other_description = request.form.get('other_description')
 
-        description = request.form.get('description')
         area = request.form.get('area')
         pincode = request.form.get('pincode')
         landmark = request.form.get('landmark')
 
-        user_id = session['user_id']
+
+        # FINAL CLEAN LOGIC
+        if garbage_type == "Other":
+
+            if other_description and other_description.strip() != "":
+                description = other_description.strip()
+            else:
+                description = "Other waste reported"
+
+        else:
+            description = garbage_type
+
 
         image = request.files.get('image')
 
         image_name = None
         image_hash_value = None
 
+
         if image and image.filename != "":
 
             filename = secure_filename(image.filename)
+
             image_path = os.path.join(UPLOAD_FOLDER, filename)
 
-            # Generate hash
             img = Image.open(image)
+
             image_hash_value = str(imagehash.phash(img))
 
             image.stream.seek(0)
@@ -158,21 +169,23 @@ def report():
             duplicate = cur.fetchone()
 
             if duplicate:
+
                 cur.close()
 
                 flash(
-                    "This image was already used in another report. Please upload a new image.",
+                    "This image was already used in another report.",
                     "danger"
                 )
 
                 return redirect(url_for('auth.report'))
 
             image.save(image_path)
+
             image_name = filename
 
             cur.close()
 
-        # Insert complaint
+
         cur = mysql.connection.cursor()
 
         cur.execute("""
@@ -191,6 +204,7 @@ def report():
         ))
 
         mysql.connection.commit()
+
         cur.close()
 
         flash("Complaint submitted successfully!", "success")
@@ -198,6 +212,10 @@ def report():
         return redirect(url_for('auth.citizen_dashboard'))
 
     return render_template("report.html")
+
+
+
+
 
 
 
@@ -209,13 +227,21 @@ def authority_dashboard():
 
     cur = mysql.connection.cursor()
     cur.execute(
-        """
-        SELECT complaint_id, garbage_type, description, image,
-               area, pincode, status, created_at
-        FROM complaints
-        ORDER BY created_at DESC
-        """
-    )
+    """
+    SELECT complaint_id,
+           garbage_type,
+           description,
+           image,
+           area,
+           pincode,
+           landmark,
+           status,
+           created_at
+    FROM complaints
+    ORDER BY created_at DESC
+    """
+)
+
     complaints = cur.fetchall()
     cur.close()
 

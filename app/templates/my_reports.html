@@ -16,28 +16,69 @@
             <th>Date</th>
         </tr>
     </thead>
+
     <tbody>
         {% for c in complaints %}
         <tr>
+
+            <!-- Complaint ID -->
             <td>{{ c[0] }}</td>
+
+            <!-- Garbage Type -->
             <td>{{ c[1] }}</td>
-            <td>{{ c[2] }}</td>
+
+            <!-- Additional Description -->
+            <td>
+                {% if c[2] %}
+                    {{ c[2] }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <!-- Image -->
             <td>
                 {% if c[4] %}
                     <img src="{{ url_for('static', filename='uploads/' ~ c[4]) }}"
-                         width="80">
+                         width="80"
+                         height="80"
+                         style="object-fit:cover; border-radius:6px;">
                 {% else %}
                     No Image
                 {% endif %}
             </td>
-            <td>{{ c[3] }}</td>
-            <td>{{ c[5] }}</td>
+
+            <!-- Status -->
+            <td>
+                <span class="badge 
+                    {% if c[3] == 'Pending' %} bg-warning text-dark
+                    {% elif c[3] == 'Resolved' %} bg-success
+                    {% else %} bg-secondary
+                    {% endif %}
+                ">
+                    {{ c[3] }}
+                </span>
+            </td>
+
+            <!-- Correct Date column -->
+            <td>
+                {% if c[7] %}
+                    {{ c[7].strftime('%d %b %Y, %I:%M %p') }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
         </tr>
         {% endfor %}
     </tbody>
+
 </table>
+
 {% else %}
-<p class="text-center">No reports submitted yet.</p>
+
+<p class="text-center text-muted">No reports submitted yet.</p>
+
 {% endif %}
 
 {% endblock %}
