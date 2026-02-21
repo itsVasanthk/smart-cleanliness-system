@@ -277,31 +277,47 @@ def report():
 # ---------------- AUTHORITY DASHBOARD ----------------
 @auth_bp.route("/authority")
 def authority_dashboard():
+
     if 'user_id' not in session or session.get('role') != 'authority':
         return redirect(url_for('auth.login'))
 
     cur = mysql.connection.cursor()
-    cur.execute(
-    """
-    SELECT complaint_id,
-           garbage_type,
-           description,
-           image,
-           area,
-           pincode,
-           landmark,
-           status,
-           created_at
-    FROM complaints
-    ORDER BY created_at DESC
-    """
-)
+
+    # Get complaints
+    cur.execute("""
+        SELECT complaint_id,
+               garbage_type,
+               description,
+               image,
+               area,
+               pincode,
+               landmark,
+               status,
+               created_at,
+               vehicle_volunteer_id,
+               transport_status
+        FROM complaints
+        ORDER BY created_at DESC
+    """)
 
     complaints = cur.fetchall()
+
+    # Get available vehicle volunteers
+    cur.execute("""
+        SELECT volunteer_id, vehicle_type, vehicle_number, vehicle_area
+        FROM volunteers
+        WHERE has_vehicle = TRUE AND vehicle_status = 'available'
+    """)
+
+    vehicle_volunteers = cur.fetchall()
+
     cur.close()
 
-    return render_template("authority_dashboard.html", complaints=complaints)
-
+    return render_template(
+        "authority_dashboard.html",
+        complaints=complaints,
+        vehicle_volunteers=vehicle_volunteers
+    )
 
 # ---------------- UPDATE COMPLAINT STATUS ----------------
 @auth_bp.route("/authority/update/<int:complaint_id>", methods=["POST"])
@@ -321,6 +337,38 @@ def update_complaint_status(complaint_id):
 
     return redirect(url_for('auth.authority_dashboard'))
 
+@auth_bp.route("/authority/assign_vehicle/<int:complaint_id>", methods=["POST"])
+def assign_vehicle(complaint_id):
+
+    if 'user_id' not in session or session.get('role') != 'authority':
+        return redirect(url_for('auth.login'))
+
+    volunteer_id = request.form["volunteer_id"]
+
+    cur = mysql.connection.cursor()
+
+    # Assign vehicle to complaint
+    cur.execute("""
+        UPDATE complaints
+        SET vehicle_volunteer_id=%s,
+            transport_status='assigned'
+        WHERE complaint_id=%s
+    """, (volunteer_id, complaint_id))
+
+    # Mark vehicle as busy
+    cur.execute("""
+        UPDATE volunteers
+        SET vehicle_status='busy'
+        WHERE volunteer_id=%s
+    """, (volunteer_id,))
+
+    mysql.connection.commit()
+
+    cur.close()
+
+    flash("Vehicle assigned successfully!", "success")
+
+    return redirect(url_for('auth.authority_dashboard'))
 
 # ---------------- ADMIN ----------------
 @auth_bp.route("/admin")
@@ -339,6 +387,7 @@ def awareness():
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
     return render_template("awareness/awareness_home.html")
+
 @auth_bp.route("/volunteer")
 def volunteer():
 
@@ -349,15 +398,12 @@ def volunteer():
     cur = mysql.connection.cursor()
 
     # Get volunteer info
-    cur.execute(
-        """
+    cur.execute("""
         SELECT volunteer_id, has_vehicle, vehicle_type, vehicle_number,
                vehicle_area, vehicle_status
         FROM volunteers
         WHERE user_id=%s
-        """,
-        (user_id,)
-    )
+    """, (user_id,))
 
     volunteer = cur.fetchone()
 
@@ -370,6 +416,8 @@ def volunteer():
     vehicle_area = None
     vehicle_status = None
 
+    transport_assignments = []
+
     if volunteer:
 
         volunteer_id = volunteer[0]
@@ -380,28 +428,36 @@ def volunteer():
         vehicle_area = volunteer[4]
         vehicle_status = volunteer[5]
 
-        # Total carbon credits
-        cur.execute(
-            "SELECT SUM(points) FROM carbon_credits WHERE volunteer_id=%s",
-            (volunteer_id,)
-        )
+        # Carbon credits
+        cur.execute("""
+            SELECT SUM(points)
+            FROM carbon_credits
+            WHERE volunteer_id=%s
+        """, (volunteer_id,))
 
         result = cur.fetchone()
 
         total_points = result[0] if result[0] else 0
 
         # Credit history
-        cur.execute(
-            """
+        cur.execute("""
             SELECT points, activity, created_at
             FROM carbon_credits
             WHERE volunteer_id=%s
             ORDER BY created_at DESC
-            """,
-            (volunteer_id,)
-        )
+        """, (volunteer_id,))
 
         credit_history = cur.fetchall()
+
+        # NEW: Transport assignments
+        cur.execute("""
+            SELECT complaint_id, area, landmark, transport_status
+            FROM complaints
+            WHERE vehicle_volunteer_id=%s
+            ORDER BY created_at DESC
+        """, (volunteer_id,))
+
+        transport_assignments = cur.fetchall()
 
     cur.close()
 
@@ -413,7 +469,8 @@ def volunteer():
         vehicle_type=vehicle_type,
         vehicle_number=vehicle_number,
         vehicle_area=vehicle_area,
-        vehicle_status=vehicle_status
+        vehicle_status=vehicle_status,
+        transport_assignments=transport_assignments
     )
 
 @auth_bp.route("/volunteer/events")
@@ -536,6 +593,50 @@ def register_vehicle():
     cur.close()
 
     return render_template("register_vehicle.html")
+
+@auth_bp.route("/volunteer/transport_complete/<int:complaint_id>")
+def transport_complete(complaint_id):
+
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+
+    # Get volunteer id first
+    cur.execute("""
+        SELECT vehicle_volunteer_id
+        FROM complaints
+        WHERE complaint_id=%s
+    """, (complaint_id,))
+
+    volunteer = cur.fetchone()
+
+    if volunteer:
+
+        volunteer_id = volunteer[0]
+
+        # Update complaint
+        cur.execute("""
+            UPDATE complaints
+            SET transport_status='completed',
+                status='Resolved'
+            WHERE complaint_id=%s
+        """, (complaint_id,))
+
+        # Make vehicle available again
+        cur.execute("""
+            UPDATE volunteers
+            SET vehicle_status='available'
+            WHERE volunteer_id=%s
+        """, (volunteer_id,))
+
+        mysql.connection.commit()
+
+    cur.close()
+
+    flash("Transport completed successfully!", "success")
+
+    return redirect(url_for('auth.volunteer'))
 
 @auth_bp.route("/authority/events", methods=["GET", "POST"])
 def authority_events():

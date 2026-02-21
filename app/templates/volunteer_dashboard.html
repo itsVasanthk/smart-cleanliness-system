@@ -53,6 +53,83 @@
 
 </div>
 
+<!-- TRANSPORT ASSIGNMENTS -->
+<div class="card p-4 shadow-sm mt-4">
+
+<h5>🚛 Your Transport Assignments</h5>
+
+{% if transport_assignments %}
+
+<table class="table">
+
+<thead>
+
+<tr>
+<th>Complaint ID</th>
+<th>Area</th>
+<th>Landmark</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for t in transport_assignments %}
+
+<tr>
+
+<td>{{ t[0] }}</td>
+
+<td>{{ t[1] }}</td>
+
+<td>{{ t[2] }}</td>
+
+<td>
+
+{% if t[3] == 'completed' %}
+<span class="badge bg-success">Completed</span>
+{% else %}
+<span class="badge bg-warning">Assigned</span>
+{% endif %}
+
+</td>
+
+<td>
+
+{% if t[3] != 'completed' %}
+
+<a href="{{ url_for('auth.transport_complete', complaint_id=t[0]) }}"
+   class="btn btn-success btn-sm">
+
+Mark Completed
+
+</a>
+
+{% else %}
+
+—
+
+{% endif %}
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% else %}
+
+<p class="text-muted">No transport assignments yet.</p>
+
+{% endif %}
+
+</div>
 
 <!-- CREDIT HISTORY -->
 <div class="card p-4 shadow-sm mb-4">

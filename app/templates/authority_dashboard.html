@@ -16,10 +16,11 @@
 </div>
 
 
-
 {% if complaints %}
 <table class="table table-bordered table-striped">
-    <thead class="table-success">
+
+<thead class="table-success">
+
 <tr>
 
 <th>ID</th>
@@ -30,13 +31,16 @@
 <th>Pincode</th>
 <th>Landmark</th>
 <th>Status</th>
+<th>Vehicle Transport</th>
 <th>Date</th>
 
 </tr>
+
 </thead>
 
-    <tbody>
-        {% for c in complaints %}
+<tbody>
+
+{% for c in complaints %}
 <tr>
 
 <td>{{ c[0] }}</td>
@@ -46,11 +50,11 @@
 <td>{{ c[2] }}</td>
 
 <td>
-    {% if c[3] %}
-        <img src="{{ url_for('static', filename='uploads/' ~ c[3]) }}" width="80">
-    {% else %}
-        No Image
-    {% endif %}
+{% if c[3] %}
+<img src="{{ url_for('static', filename='uploads/' ~ c[3]) }}" width="80">
+{% else %}
+No Image
+{% endif %}
 </td>
 
 <td>{{ c[4] }}</td>
@@ -59,26 +63,100 @@
 
 <td>{{ c[6] }}</td>
 
+
+<!-- Complaint status update -->
 <td>
-    <form method="POST" action="{{ url_for('auth.update_complaint_status', complaint_id=c[0]) }}">
-        <select name="status" class="form-control">
-            <option value="Pending" {% if c[7]=='Pending' %}selected{% endif %}>Pending</option>
-            <option value="Resolved" {% if c[7]=='Resolved' %}selected{% endif %}>Resolved</option>
-        </select>
-        <button class="btn btn-success btn-sm mt-1">Update</button>
-    </form>
+
+<form method="POST"
+      action="{{ url_for('auth.update_complaint_status', complaint_id=c[0]) }}">
+
+<select name="status" class="form-control">
+
+<option value="Pending"
+{% if c[7]=='Pending' %}selected{% endif %}>
+Pending
+</option>
+
+<option value="Resolved"
+{% if c[7]=='Resolved' %}selected{% endif %}>
+Resolved
+</option>
+
+</select>
+
+<button class="btn btn-success btn-sm mt-1">
+Update
+</button>
+
+</form>
+
 </td>
 
-<td>{{ c[8].strftime('%d %b %Y, %I:%M %p') if c[8] else '' }}</td>
 
-</tr>
+<!-- CLEAN VEHICLE TRANSPORT COLUMN -->
+<td>
+
+{% if c[10] == 'completed' %}
+
+<span class="badge bg-success">
+Transport Completed
+</span>
+
+{% elif c[10] == 'assigned' %}
+
+<span class="badge bg-warning text-dark">
+Vehicle Assigned
+</span>
+
+{% else %}
+
+<form method="POST"
+action="{{ url_for('auth.assign_vehicle', complaint_id=c[0]) }}">
+
+<select name="volunteer_id"
+class="form-control">
+
+<option value="">
+Select Vehicle
+</option>
+
+{% for v in vehicle_volunteers %}
+
+<option value="{{ v[0] }}">
+{{ v[1] }} - {{ v[2] }} ({{ v[3] }})
+</option>
+
 {% endfor %}
 
+</select>
 
-    </tbody>
+<button class="btn btn-primary btn-sm mt-1">
+Assign
+</button>
+
+</form>
+
+{% endif %}
+
+</td>
+
+
+<td>
+{{ c[8].strftime('%d %b %Y, %I:%M %p') if c[8] else '' }}
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
 </table>
+
 {% else %}
+
 <p class="text-center">No complaints found.</p>
+
 {% endif %}
 
 {% endblock %}
