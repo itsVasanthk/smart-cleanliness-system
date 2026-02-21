@@ -339,34 +339,55 @@ def awareness():
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
     return render_template("awareness/awareness_home.html")
-
 @auth_bp.route("/volunteer")
 def volunteer():
+
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
 
     user_id = session['user_id']
     cur = mysql.connection.cursor()
 
-    # Get volunteer_id
+    # Get volunteer info
     cur.execute(
-        "SELECT volunteer_id FROM volunteers WHERE user_id=%s",
+        """
+        SELECT volunteer_id, has_vehicle, vehicle_type, vehicle_number,
+               vehicle_area, vehicle_status
+        FROM volunteers
+        WHERE user_id=%s
+        """,
         (user_id,)
     )
+
     volunteer = cur.fetchone()
 
     total_points = 0
     credit_history = []
 
+    has_vehicle = False
+    vehicle_type = None
+    vehicle_number = None
+    vehicle_area = None
+    vehicle_status = None
+
     if volunteer:
+
         volunteer_id = volunteer[0]
 
-        # Total points
+        has_vehicle = volunteer[1]
+        vehicle_type = volunteer[2]
+        vehicle_number = volunteer[3]
+        vehicle_area = volunteer[4]
+        vehicle_status = volunteer[5]
+
+        # Total carbon credits
         cur.execute(
             "SELECT SUM(points) FROM carbon_credits WHERE volunteer_id=%s",
             (volunteer_id,)
         )
+
         result = cur.fetchone()
+
         total_points = result[0] if result[0] else 0
 
         # Credit history
@@ -379,6 +400,7 @@ def volunteer():
             """,
             (volunteer_id,)
         )
+
         credit_history = cur.fetchall()
 
     cur.close()
@@ -386,9 +408,13 @@ def volunteer():
     return render_template(
         "volunteer_dashboard.html",
         total_points=total_points,
-        credit_history=credit_history
+        credit_history=credit_history,
+        has_vehicle=has_vehicle,
+        vehicle_type=vehicle_type,
+        vehicle_number=vehicle_number,
+        vehicle_area=vehicle_area,
+        vehicle_status=vehicle_status
     )
-
 
 @auth_bp.route("/volunteer/events")
 def volunteer_events():
@@ -454,6 +480,62 @@ def join_event(event_id):
     cur.close()
     return redirect(url_for('auth.volunteer_events'))
 
+@auth_bp.route("/register_vehicle", methods=["GET", "POST"])
+def register_vehicle():
+
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+
+    if request.method == "POST":
+
+        vehicle_type = request.form["vehicle_type"]
+        vehicle_number = request.form["vehicle_number"]
+        vehicle_area = request.form["vehicle_area"]
+
+        user_id = session["user_id"]
+
+        # Check if volunteer record exists
+        cur.execute(
+            "SELECT volunteer_id FROM volunteers WHERE user_id=%s",
+            (user_id,)
+        )
+
+        volunteer = cur.fetchone()
+
+        if volunteer:
+
+            # Update existing volunteer
+            cur.execute("""
+                UPDATE volunteers
+                SET has_vehicle = TRUE,
+                    vehicle_type = %s,
+                    vehicle_number = %s,
+                    vehicle_area = %s,
+                    vehicle_status = 'available'
+                WHERE user_id = %s
+            """, (vehicle_type, vehicle_number, vehicle_area, user_id))
+
+        else:
+
+            # Create volunteer record first
+            cur.execute("""
+                INSERT INTO volunteers
+                (user_id, has_vehicle, vehicle_type, vehicle_number, vehicle_area, vehicle_status)
+                VALUES (%s, TRUE, %s, %s, %s, 'available')
+            """, (user_id, vehicle_type, vehicle_number, vehicle_area))
+
+        mysql.connection.commit()
+        cur.close()
+
+        flash("Vehicle registered successfully!", "success")
+
+        return redirect(url_for("auth.volunteer"))
+
+    cur.close()
+
+    return render_template("register_vehicle.html")
 
 @auth_bp.route("/authority/events", methods=["GET", "POST"])
 def authority_events():

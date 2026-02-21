@@ -23,8 +23,39 @@
     </div>
 </div>
 
-<!-- CREDIT HISTORY -->
+<!-- VEHICLE VOLUNTEER SECTION (NEW SAFE ADDITION) -->
 <div class="card p-4 shadow-sm">
+
+    <h5>🚛 Vehicle Volunteer Registration</h5>
+
+    <p class="text-muted">
+        Register your vehicle to help transport collected garbage and earn additional carbon credits.
+    </p>
+
+    {% if has_vehicle %}
+        
+        <div class="alert alert-success">
+            <strong>Vehicle Registered Successfully!</strong><br>
+            <b>Type:</b> {{ vehicle_type }}<br>
+            <b>Number:</b> {{ vehicle_number }}<br>
+            <b>Area:</b> {{ vehicle_area }}<br>
+            <b>Status:</b> {{ vehicle_status }}
+        </div>
+
+    {% else %}
+
+        <a href="{{ url_for('auth.register_vehicle') }}"
+           class="btn btn-primary">
+           🚛 Register Your Vehicle
+        </a>
+
+    {% endif %}
+
+</div>
+
+
+<!-- CREDIT HISTORY -->
+<div class="card p-4 shadow-sm mb-4">
     <h5>Credit History</h5>
 
     {% if credit_history %}
@@ -50,5 +81,8 @@
         <p class="text-muted">No credits earned yet.</p>
     {% endif %}
 </div>
+
+
+
 
 {% endblock %}

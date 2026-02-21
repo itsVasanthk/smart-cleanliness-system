@@ -1,0 +1,39 @@
+{% extends "citizen_base.html" %}
+
+{% block content %}
+
+<div class="card p-4">
+
+<h3>🚛 Vehicle Registration</h3>
+
+<form method="POST">
+
+<div class="mb-3">
+<label>Vehicle Type</label>
+<select name="vehicle_type" class="form-control" required>
+<option value="Truck">Truck</option>
+<option value="Auto">Auto</option>
+<option value="Pickup">Pickup</option>
+<option value="Tractor">Tractor</option>
+</select>
+</div>
+
+<div class="mb-3">
+<label>Vehicle Number</label>
+<input type="text" name="vehicle_number" class="form-control" required>
+</div>
+
+<div class="mb-3">
+<label>Operating Area</label>
+<input type="text" name="vehicle_area" class="form-control" required>
+</div>
+
+<button type="submit" class="btn btn-success">
+Register Vehicle
+</button>
+
+</form>
+
+</div>
+
+{% endblock %}
