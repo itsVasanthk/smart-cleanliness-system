@@ -79,10 +79,65 @@ def login():
 # ---------------- CITIZEN DASHBOARD ----------------
 @auth_bp.route("/citizen")
 def citizen_dashboard():
-    if 'user_id' not in session:
-        return redirect(url_for('auth.login'))
-    return render_template("citizen_dashboard.html")
 
+    import mysql.connector
+
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="root123",
+        database="smart_cleanliness_db"
+    )
+
+    cursor = conn.cursor()
+
+    # Total complaints
+    cursor.execute("SELECT COUNT(*) FROM complaints")
+    total_reports = cursor.fetchone()[0]
+
+    # Resolved complaints
+    cursor.execute("SELECT COUNT(*) FROM complaints WHERE status = 'resolved'")
+    resolved_reports = cursor.fetchone()[0]
+
+    # Pending complaints
+    cursor.execute("SELECT COUNT(*) FROM complaints WHERE status = 'pending'")
+    pending_reports = cursor.fetchone()[0]
+
+    conn.close()
+
+    # Calculate resolution percentage
+    if total_reports > 0:
+        resolved_percent = (resolved_reports / total_reports) * 100
+    else:
+        resolved_percent = 0
+
+    # Select AI emotion image + Tamil slogan
+    if resolved_percent >= 70:
+
+        emotion_image = "images/happy_madurai.png"
+
+        slogan = "மதுரை சுத்தமாக மாறுகிறது! உங்கள் பங்களிப்பு அருமை!"
+
+    elif resolved_percent >= 40:
+
+        emotion_image = "images/neutral_madurai.png"
+
+        slogan = "நாம் ஒன்றிணைந்து மதுரையை சுத்தமாக மாற்றலாம்!"
+
+    else:
+
+        emotion_image = "images/sad_madurai.png"
+
+        slogan = "மதுரைக்கு உங்கள் உதவி தேவை! இப்போது செயல்படுங்கள்!"
+
+    return render_template(
+        "citizen_dashboard.html",
+        total_reports=total_reports,
+        resolved_reports=resolved_reports,
+        pending_reports=pending_reports,
+        emotion_image=emotion_image,
+        slogan=slogan
+    )
 
 # ---------------- MY REPORTS ----------------
 @auth_bp.route("/citizen/reports")
