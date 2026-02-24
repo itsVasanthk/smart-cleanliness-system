@@ -111,24 +111,27 @@ def citizen_dashboard():
     else:
         resolved_percent = 0
 
-    # Select AI emotion image + Tamil slogan
+    # Select AI emotion image + Tamil + English slogan
     if resolved_percent >= 70:
 
         emotion_image = "images/happy_madurai.png"
 
-        slogan = "மதுரை சுத்தமாக மாறுகிறது! உங்கள் பங்களிப்பு அருமை!"
+        slogan_tamil = "மதுரை சுத்தமாக மாறுகிறது! உங்கள் பங்களிப்பு அருமை!"
+        slogan_english = "Madurai is becoming cleaner! Your contribution is amazing!"
 
     elif resolved_percent >= 40:
 
         emotion_image = "images/neutral_madurai.png"
 
-        slogan = "நாம் ஒன்றிணைந்து மதுரையை சுத்தமாக மாற்றலாம்!"
+        slogan_tamil = "நாம் ஒன்றிணைந்து மதுரையை சுத்தமாக மாற்றலாம்!"
+        slogan_english = "Together, we can make Madurai cleaner!"
 
     else:
 
         emotion_image = "images/sad_madurai.png"
 
-        slogan = "மதுரைக்கு உங்கள் உதவி தேவை! இப்போது செயல்படுங்கள்!"
+        slogan_tamil = "மதுரைக்கு உங்கள் உதவி தேவை! இப்போதே செயல்படுங்கள்!"
+        slogan_english = "Madurai needs your help! Act now!"
 
     return render_template(
         "citizen_dashboard.html",
@@ -136,9 +139,9 @@ def citizen_dashboard():
         resolved_reports=resolved_reports,
         pending_reports=pending_reports,
         emotion_image=emotion_image,
-        slogan=slogan
+        slogan_tamil=slogan_tamil,
+        slogan_english=slogan_english
     )
-
 # ---------------- MY REPORTS ----------------
 @auth_bp.route("/citizen/reports")
 def my_reports():
@@ -849,4 +852,21 @@ def locate_waste():
 
     return render_template("locate_waste.html")
 
+@auth_bp.route("/awareness/tourism")
+def tourism():
+    return render_template("awareness/tourism.html")
 
+
+@auth_bp.route("/awareness/temples")
+def temples():
+    return render_template("awareness/temples.html")
+
+
+@auth_bp.route("/awareness/food")
+def food():
+    return render_template("awareness/food.html")
+
+
+@auth_bp.route("/awareness/guidelines")
+def guidelines():
+    return render_template("awareness/guidelines.html")
