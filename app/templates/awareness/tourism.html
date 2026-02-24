@@ -1,15 +1,165 @@
 {% extends "citizen_base.html" %}
 {% block content %}
 
-<h2>Clean Tourism Awareness</h2>
+<div class="container mt-4">
 
-<ul>
-    <li>Use dustbins provided at tourist places</li>
-    <li>Avoid plastic usage</li>
-    <li>Do not litter public places</li>
-    <li>Respect local environment and culture</li>
-</ul>
+    <h2 class="text-center mb-5">
+        Madurai Tourism Guide 🏛
+    </h2>
 
-<a href="/awareness" class="btn btn-secondary mt-3">Back</a>
+    <!-- ================= MEENAKSHI TEMPLE ================= -->
+    <div class="card shadow-sm p-4 mb-5">
+        <div class="row align-items-center">
+
+            <!-- LEFT SIDE IMAGE -->
+            <div class="col-md-6 mb-3 mb-md-0">
+                <img src="{{ url_for('static', filename='images/meenakshi_temple.jpg') }}"
+                     class="img-fluid rounded shadow w-100"
+                     style="height:350px; object-fit:cover;">
+            </div>
+
+            <!-- RIGHT SIDE CONTENT -->
+            <div class="col-md-6">
+
+                <h4>Meenakshi Amman Temple</h4>
+
+                <p>
+                    Located in the heart of Madurai, Meenakshi Amman Temple is one of the
+                    most iconic spiritual and architectural landmarks in India.
+                    It attracts millions of visitors every year.
+                </p>
+
+                <h6 class="mt-3">🚌 Bus Routes</h6>
+                <ul>
+                    <li>Periyar Bus Stand → Temple : Bus No. 2, 12B</li>
+                    <li>Mattuthavani → Periyar : Bus No. 70, 71</li>
+                    <li>Arapalayam → Periyar : Bus No. 2B</li>
+                </ul>
+
+                <h6 class="mt-3">♻ Cleanliness Guidelines</h6>
+                <ul>
+                    <li>Avoid plastic carry bags inside temple premises</li>
+                    <li>Use designated dustbins</li>
+                    <li>Do not litter flowers or food waste</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= THIRUMALAI NAYAKKAR MAHAL ================= -->
+    <div class="card shadow-sm p-4 mb-5">
+        <div class="row align-items-center">
+
+            <div class="col-md-6 mb-3 mb-md-0">
+                <img src="{{ url_for('static', filename='images/nayakkar_mahal.jpg') }}"
+                     class="img-fluid rounded shadow w-100"
+                     style="height:350px; object-fit:cover;">
+            </div>
+
+            <div class="col-md-6">
+
+                <h4>Thirumalai Nayakkar Mahal</h4>
+
+                <p>
+                    Built in 1636 AD, this palace is a stunning example of Indo-Saracenic
+                    architecture and one of Madurai’s most famous heritage monuments.
+                </p>
+
+                <h6 class="mt-3">🚌 Bus Routes</h6>
+                <ul>
+                    <li>Periyar → Mahal : Bus No. 5, 12B</li>
+                    <li>Mattuthavani → Periyar : Bus No. 70</li>
+                    <li>Arapalayam → Periyar : Bus No. 2B</li>
+                </ul>
+
+                <h6 class="mt-3">♻ Cleanliness Guidelines</h6>
+                <ul>
+                    <li>Do not scribble on walls</li>
+                    <li>Maintain heritage cleanliness</li>
+                    <li>Use dustbins provided</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= GANDHI MEMORIAL MUSEUM ================= -->
+    <div class="card shadow-sm p-4 mb-5">
+        <div class="row align-items-center">
+
+            <div class="col-md-6 mb-3 mb-md-0">
+                <img src="{{ url_for('static', filename='images/gandhi_museum.jpg') }}"
+                     class="img-fluid rounded shadow w-100"
+                     style="height:350px; object-fit:cover;">
+            </div>
+
+            <div class="col-md-6">
+
+                <h4>Gandhi Memorial Museum</h4>
+
+                <p>
+                    One of the five Gandhi museums in India, it houses rare photographs,
+                    letters, and historical exhibits related to India’s freedom movement.
+                </p>
+
+                <h6 class="mt-3">🚌 Bus Routes</h6>
+                <ul>
+                    <li>Periyar → Museum : Bus No. 4, 7</li>
+                    <li>Mattuthavani → Periyar : Bus No. 70</li>
+                    <li>Arapalayam → Periyar : Bus No. 2B</li>
+                </ul>
+
+                <h6 class="mt-3">♻ Cleanliness Guidelines</h6>
+                <ul>
+                    <li>Maintain silence and discipline</li>
+                    <li>Avoid littering inside campus</li>
+                    <li>Respect historical artifacts</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= ALAGAR KOIL ================= -->
+    <div class="card shadow-sm p-4 mb-5">
+        <div class="row align-items-center">
+
+            <div class="col-md-6 mb-3 mb-md-0">
+                <img src="{{ url_for('static', filename='images/alagar_kovil.jpg') }}"
+                     class="img-fluid rounded shadow w-100"
+                     style="height:350px; object-fit:cover;">
+            </div>
+
+            <div class="col-md-6">
+
+                <h4>Alagar Kovil</h4>
+
+                <p>
+                    Located on the foothills of Alagar Hills, this temple is known
+                    for its scenic beauty and religious significance.
+                </p>
+
+                <h6 class="mt-3">🚌 Bus Routes</h6>
+                <ul>
+                    <li>Periyar → Alagar Kovil : Bus No. 44</li>
+                    <li>Mattuthavani → Alagar Kovil : Bus No. 44A</li>
+                </ul>
+
+                <h6 class="mt-3">♻ Cleanliness Guidelines</h6>
+                <ul>
+                    <li>Do not throw plastic in hill areas</li>
+                    <li>Maintain natural surroundings</li>
+                    <li>Respect temple traditions</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+
+</div>
 
 {% endblock %}
