@@ -1,15 +1,193 @@
 {% extends "citizen_base.html" %}
 {% block content %}
 
-<h2>Food Area Hygiene Awareness</h2>
+<div class="container mt-4">
 
-<ul>
-    <li>Dispose food waste responsibly</li>
-    <li>Avoid single-use plastics</li>
-    <li>Maintain cleanliness near food stalls</li>
-    <li>Report unhygienic conditions</li>
-</ul>
+    <h2 class="text-center mb-5">Madurai Food Guide 🍽</h2>
 
-<a href="/awareness" class="btn btn-secondary mt-3">Back</a>
+    <!-- ================= MURUGAN IDLI SHOP ================= -->
+    <div class="card shadow-sm p-4 mb-5">
+        <div class="row align-items-center">
+
+            <div class="col-md-6 mb-3 mb-md-0">
+                <img src="{{ url_for('static', filename='images/murugan_idli.jpg') }}"
+                     class="img-fluid rounded shadow w-100"
+                     style="height:350px; object-fit:cover;">
+            </div>
+
+            <div class="col-md-6">
+
+                <h4>Murugan Idli Shop</h4>
+
+                <p>
+                    One of the most famous vegetarian restaurants in Madurai,
+                    known for its soft idlis, chutneys, and traditional South Indian meals.
+                </p>
+
+                <h6 class="mt-3">🕒 Timings</h6>
+                <p>6:00 AM – 10:30 PM</p>
+
+                <h6 class="mt-3">🍴 Must Try</h6>
+                <ul>
+                    <li>Idli with 4 chutneys</li>
+                    <li>Ghee Podi Dosa</li>
+                    <li>Sweet Pongal</li>
+                </ul>
+
+                <h6 class="mt-3">🚌 Bus Routes</h6>
+                <ul>
+                    <li><b>Murugan Idli → Periyar Bus Stand:</b> 5A, 12B</li>
+                    <li><b>Murugan Idli → Mattuthavani:</b> 70, 70A</li>
+                    <li><b>Murugan Idli → Arapalayam:</b> 2B</li>
+                </ul>
+
+                <h6 class="mt-3">♻ Hygiene & Cleanliness</h6>
+                <ul>
+                    <li>Dispose food waste in bins</li>
+                    <li>Avoid littering outside restaurant</li>
+                    <li>Use eco-friendly packaging</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= AMMA MESS ================= -->
+    <div class="card shadow-sm p-4 mb-5">
+        <div class="row align-items-center">
+
+            <div class="col-md-6 mb-3 mb-md-0">
+                <img src="{{ url_for('static', filename='images/amma_mess.jpg') }}"
+                     class="img-fluid rounded shadow w-100"
+                     style="height:350px; object-fit:cover;">
+            </div>
+
+            <div class="col-md-6">
+
+                <h4>Amma Mess</h4>
+
+                <p>
+                    Famous for authentic Chettinad-style non-vegetarian dishes.
+                    A must-visit for food lovers visiting Madurai.
+                </p>
+
+                <h6 class="mt-3">🕒 Timings</h6>
+                <p>11:00 AM – 4:00 PM & 7:00 PM – 11:00 PM</p>
+
+                <h6 class="mt-3">🍴 Must Try</h6>
+                <ul>
+                    <li>Mutton Curry</li>
+                    <li>Brain Fry</li>
+                    <li>Chicken Chukka</li>
+                </ul>
+
+                <h6 class="mt-3">🚌 Bus Routes</h6>
+                <ul>
+                    <li><b>Amma Mess → Periyar:</b> 5A, 8A</li>
+                    <li><b>Amma Mess → Mattuthavani:</b> 70</li>
+                    <li><b>Amma Mess → Arapalayam:</b> 2B</li>
+                </ul>
+
+                <h6 class="mt-3">♻ Hygiene & Cleanliness</h6>
+                <ul>
+                    <li>Do not waste food</li>
+                    <li>Use waste segregation bins</li>
+                    <li>Maintain cleanliness around dining area</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= KUMAR MESS ================= -->
+    <div class="card shadow-sm p-4 mb-5">
+        <div class="row align-items-center">
+
+            <div class="col-md-6 mb-3 mb-md-0">
+                <img src="{{ url_for('static', filename='images/kumar_mess.jpg') }}"
+                     class="img-fluid rounded shadow w-100"
+                     style="height:350px; object-fit:cover;">
+            </div>
+
+            <div class="col-md-6">
+
+                <h4>Kumar Mess</h4>
+
+                <p>
+                    Known for traditional Madurai-style non-veg meals and biryani.
+                </p>
+
+                <h6 class="mt-3">🕒 Timings</h6>
+                <p>11:00 AM – 3:30 PM & 7:00 PM – 10:30 PM</p>
+
+                <h6 class="mt-3">🍴 Must Try</h6>
+                <ul>
+                    <li>Mutton Biryani</li>
+                    <li>Fish Fry</li>
+                    <li>Chicken Gravy Meals</li>
+                </ul>
+
+                <h6 class="mt-3">🚌 Bus Routes</h6>
+                <ul>
+                    <li><b>Kumar Mess → Periyar:</b> 5B, 12B</li>
+                    <li><b>Kumar Mess → Mattuthavani:</b> 70A</li>
+                    <li><b>Kumar Mess → Arapalayam:</b> 2B</li>
+                </ul>
+
+                <h6 class="mt-3">♻ Hygiene & Cleanliness</h6>
+                <ul>
+                    <li>Avoid food wastage</li>
+                    <li>Maintain table cleanliness</li>
+                    <li>Support sustainable food practices</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= JIGARTHANDA (VILAKUTHOON AREA) ================= -->
+    <div class="card shadow-sm p-4 mb-5">
+        <div class="row align-items-center">
+
+            <div class="col-md-6 mb-3 mb-md-0">
+                <img src="{{ url_for('static', filename='images/jigarthanda.jpg') }}"
+                     class="img-fluid rounded shadow w-100"
+                     style="height:350px; object-fit:cover;">
+            </div>
+
+            <div class="col-md-6">
+
+                <h4>Famous Jigarthanda (Vilakuthoon)</h4>
+
+                <p>
+                    A signature Madurai cold beverage loved by tourists and locals.
+                    Best enjoyed in the evening.
+                </p>
+
+                <h6 class="mt-3">🕒 Timings</h6>
+                <p>10:00 AM – 10:00 PM</p>
+
+                <h6 class="mt-3">🚌 Bus Routes</h6>
+                <ul>
+                    <li><b>Vilakuthoon → Periyar:</b> 5A, 10A</li>
+                    <li><b>Vilakuthoon → Mattuthavani:</b> 70</li>
+                    <li><b>Vilakuthoon → Arapalayam:</b> 2B</li>
+                </ul>
+
+                <h6 class="mt-3">♻ Hygiene & Cleanliness</h6>
+                <ul>
+                    <li>Dispose cups properly</li>
+                    <li>Avoid plastic waste</li>
+                    <li>Keep street food areas clean</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+
+</div>
 
 {% endblock %}
