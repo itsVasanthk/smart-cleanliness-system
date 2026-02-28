@@ -288,7 +288,43 @@ def authority_dashboard():
 
     cur = mysql.connection.cursor()
 
-    # Get complaints
+    cur.execute("SELECT COUNT(*) FROM complaints")
+    total_complaints = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM complaints WHERE status='pending'")
+    pending_complaints = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM complaints WHERE status='resolved'")
+    resolved_complaints = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM cleaning_events")
+    total_events = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM volunteers")
+    total_volunteers = cur.fetchone()[0]
+
+    cur.execute("SELECT COALESCE(SUM(points), 0) FROM carbon_credits")
+    total_carbon_credits = cur.fetchone()[0]
+
+    cur.close()
+
+    return render_template(
+        "authority_analytics.html",
+        total_complaints=total_complaints,
+        pending_complaints=pending_complaints,
+        resolved_complaints=resolved_complaints,
+        total_events=total_events,
+        total_volunteers=total_volunteers,
+        total_carbon_credits=total_carbon_credits
+    )
+@auth_bp.route("/authority/complaints")
+def manage_complaints():
+
+    if 'user_id' not in session or session.get('role') != 'authority':
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+
     cur.execute("""
         SELECT complaint_id,
                garbage_type,
@@ -307,7 +343,6 @@ def authority_dashboard():
 
     complaints = cur.fetchall()
 
-    # Get available vehicle volunteers
     cur.execute("""
         SELECT volunteer_id, vehicle_type, vehicle_number, vehicle_area
         FROM volunteers
@@ -802,50 +837,8 @@ def complete_event(event_id):
 
     return redirect(url_for('auth.authority_events'))
 
-@auth_bp.route("/authority/analytics")
-def authority_analytics():
 
-    if 'user_id' not in session or session.get('role') != 'authority':
-        return redirect(url_for('auth.login'))
-
-    cur = mysql.connection.cursor()
-
-    # Total complaints
-    cur.execute("SELECT COUNT(*) FROM complaints")
-    total_complaints = cur.fetchone()[0]
-
-    # Pending complaints
-    cur.execute("SELECT COUNT(*) FROM complaints WHERE status='Pending'")
-    pending_complaints = cur.fetchone()[0]
-
-    # Resolved complaints
-    cur.execute("SELECT COUNT(*) FROM complaints WHERE status='Resolved'")
-    resolved_complaints = cur.fetchone()[0]
-
-    # Total events
-    cur.execute("SELECT COUNT(*) FROM cleaning_events")
-    total_events = cur.fetchone()[0]
-
-    # Total volunteers participated
-    cur.execute("SELECT COUNT(DISTINCT user_id) FROM event_participants")
-    total_volunteers = cur.fetchone()[0]
-
-    # Total credits awarded
-    cur.execute("SELECT SUM(points) FROM carbon_credits")
-    result = cur.fetchone()[0]
-    total_credits = result if result else 0
-
-    cur.close()
-
-    return render_template(
-        "authority_analytics.html",
-        total_complaints=total_complaints,
-        pending_complaints=pending_complaints,
-        resolved_complaints=resolved_complaints,
-        total_events=total_events,
-        total_volunteers=total_volunteers,
-        total_credits=total_credits
-    )
+    
 
 @auth_bp.route("/locate-waste")
 def locate_waste():
@@ -1022,16 +1015,26 @@ def emergency_request():
 @auth_bp.route("/authority/emergency")
 def view_emergency_requests():
 
-    if 'role' not in session or session['role'] != 'authority':
+    if session.get('role') != 'authority':
         return redirect(url_for('auth.login'))
 
     cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM emergency_requests")
+
+    # Get all emergency requests
+    cur.execute("SELECT * FROM emergency_requests ORDER BY created_at DESC")
     requests = cur.fetchall()
+
+    # Get current wallet balance
+    cur.execute("SELECT total_balance FROM fund_wallet WHERE id=1")
+    wallet_balance = cur.fetchone()[0]
+
     cur.close()
 
-    return render_template("emergency/admin_requests.html",
-                           requests=requests)
+    return render_template(
+        "emergency/admin_requests.html",
+        requests=requests,
+        wallet_balance=wallet_balance
+    )
 
 @auth_bp.route("/authority/emergency/approve/<int:request_id>", methods=["POST"])
 def approve_emergency(request_id):
@@ -1146,3 +1149,4 @@ def emergency_status():
 
     return render_template("emergency/status.html",
                            request_data=request_data)
+

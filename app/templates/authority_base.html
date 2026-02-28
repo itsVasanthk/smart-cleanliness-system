@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CleanCITY Authority</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background-color: #f4f6f8;
+        }
+
+        /* LEFT SIDEBAR */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 240px;
+            height: 100vh;
+            background-color: #1e4620;
+            color: white;
+            padding-top: 20px;
+        }
+
+        .sidebar h4 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .sidebar a:hover {
+            background-color: #163618;
+        }
+
+        /* RIGHT CONTENT AREA */
+        .content {
+            margin-left: 240px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* TOP BAR */
+        .topbar {
+            background-color: #1e4620;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-left: 240px;
+        }
+
+        .logout-btn {
+            background-color: white;
+            color: #1e4620;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 5px;
+        }
+
+        .logout-btn:hover {
+            background-color: #e6e6e6;
+        }
+
+        /* Active link highlight */
+        .sidebar a.active {
+            background-color: #2e6b32;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h4>Authority Panel</h4>
+
+    <a href="{{ url_for('auth.authority_dashboard') }}">📊 View Analytics</a>
+
+    <a href="{{ url_for('auth.manage_complaints') }}">🗑 Manage Complaints</a>
+
+    <a href="{{ url_for('auth.authority_events') }}">🚛 Manage Cleaning Events</a>
+
+    <a href="{{ url_for('auth.view_emergency_requests') }}">🆘 Manage Emergency Requests</a>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <div>
+        Welcome, {{ session.get('name', 'Authority') }}
+    </div>
+    <div>
+        <a href="{{ url_for('auth.logout') }}">
+            <button class="logout-btn">Logout</button>
+        </a>
+    </div>
+</div>
+
+<!-- CONTENT AREA -->
+<div class="content">
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

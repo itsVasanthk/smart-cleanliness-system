@@ -1,9 +1,28 @@
-{% extends "base.html" %}
+{% extends "authority_base.html" %}
 {% block content %}
 
 <div class="container mt-4">
 
     <h2>Emergency Assistance Requests 🆘</h2>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} mt-3">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Fund Balance Display -->
+    <div class="card shadow-sm p-3 mt-3 mb-4">
+        <h5>
+            Community Emergency Fund Balance:
+            <span class="text-success">₹{{ wallet_balance }}</span>
+        </h5>
+    </div>
 
     {% if requests %}
     <table class="table table-bordered table-striped mt-3">
@@ -27,6 +46,7 @@
             <td>{{ r[2] }}</td>
             <td>₹{{ r[4] }}</td>
             <td>{{ r[7] }}</td>
+
             <td>
                 {% if r[9] == 'pending' %}
                     <span class="badge bg-warning">Pending</span>
@@ -36,27 +56,46 @@
                     <span class="badge bg-danger">Rejected</span>
                 {% endif %}
             </td>
+
             <td>
                 {% if r[9] == 'pending' %}
-                <form method="POST" action="{{ url_for('auth.approve_emergency', request_id=r[0]) }}">
-                    <button class="btn btn-success btn-sm">Approve</button>
-                </form>
 
-                <form method="POST" action="{{ url_for('auth.reject_emergency', request_id=r[0]) }}">
-                    <button class="btn btn-danger btn-sm mt-1">Reject</button>
-                </form>
+                    {% if wallet_balance < r[4] %}
+                        <button class="btn btn-secondary btn-sm" disabled>
+                            Insufficient Funds
+                        </button>
+                    {% else %}
+                        <form method="POST"
+                              action="{{ url_for('auth.approve_emergency', request_id=r[0]) }}">
+                            <button class="btn btn-success btn-sm">
+                                Approve
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    <form method="POST"
+                          action="{{ url_for('auth.reject_emergency', request_id=r[0]) }}">
+                        <button class="btn btn-danger btn-sm mt-1">
+                            Reject
+                        </button>
+                    </form>
+
                 {% else %}
-                -
+                    -
                 {% endif %}
             </td>
+
         </tr>
         {% endfor %}
 
         </tbody>
 
     </table>
+
     {% else %}
-        <p>No emergency requests.</p>
+        <div class="alert alert-info mt-3">
+            No emergency requests.
+        </div>
     {% endif %}
 
 </div>

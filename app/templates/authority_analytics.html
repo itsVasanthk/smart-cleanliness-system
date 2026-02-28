@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "authority_base.html" %}
 
 {% block content %}
 
@@ -49,7 +49,7 @@ System overview and statistics
     <div class="col-md-4 mb-3">
         <div class="card p-3 shadow-sm">
             <h5>Total Carbon Credits Awarded</h5>
-            <h2 class="text-success">{{ total_credits }}</h2>
+            <h2 class="text-success">{{ total_carbon_credits or 0 }}</h2>
         </div>
     </div>
 

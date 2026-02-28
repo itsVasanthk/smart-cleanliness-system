@@ -1,24 +1,5 @@
-{% extends "base.html" %}
+{% extends "authority_base.html" %}
 {% block content %}
-
-<div class="d-flex gap-2 mb-4">
-
-    <a href="{{ url_for('auth.authority_analytics') }}"
-       class="btn btn-outline-success">
-       View Analytics Dashboard
-    </a>
-
-    <a href="{{ url_for('auth.authority_events') }}"
-       class="btn btn-outline-success">
-       Manage Cleaning Events
-    </a>
-
-    <a href="{{ url_for('auth.view_emergency_requests') }}" 
-   class="btn btn-outline-danger">
-   Manage Emergency Requests
-</a>
-</div>
-
 
 {% if complaints %}
 <table class="table table-bordered table-striped">
