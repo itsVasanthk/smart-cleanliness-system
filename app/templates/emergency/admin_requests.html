@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2>Emergency Assistance Requests 🆘</h2>
+
+    {% if requests %}
+    <table class="table table-bordered table-striped mt-3">
+
+        <thead class="table-danger">
+            <tr>
+                <th>User ID</th>
+                <th>Reason</th>
+                <th>Amount</th>
+                <th>AI Distance</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for r in requests %}
+        <tr>
+            <td>{{ r[1] }}</td>
+            <td>{{ r[2] }}</td>
+            <td>₹{{ r[4] }}</td>
+            <td>{{ r[7] }}</td>
+            <td>
+                {% if r[9] == 'pending' %}
+                    <span class="badge bg-warning">Pending</span>
+                {% elif r[9] == 'paid' %}
+                    <span class="badge bg-success">Paid</span>
+                {% elif r[9] == 'rejected' %}
+                    <span class="badge bg-danger">Rejected</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if r[9] == 'pending' %}
+                <form method="POST" action="{{ url_for('auth.approve_emergency', request_id=r[0]) }}">
+                    <button class="btn btn-success btn-sm">Approve</button>
+                </form>
+
+                <form method="POST" action="{{ url_for('auth.reject_emergency', request_id=r[0]) }}">
+                    <button class="btn btn-danger btn-sm mt-1">Reject</button>
+                </form>
+                {% else %}
+                -
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+    {% else %}
+        <p>No emergency requests.</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

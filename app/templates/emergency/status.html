@@ -1,0 +1,65 @@
+{% extends "citizen_base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2>My Emergency Assistance Status 🆘</h2>
+
+    {% if request_data %}
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-body">
+
+            <p><strong>Reason:</strong> {{ request_data[1] }}</p>
+            <p><strong>Amount Requested:</strong> ₹{{ request_data[2] }}</p>
+            <p><strong>Requested On:</strong> {{ request_data[4] }}</p>
+
+            <hr>
+
+            {% if request_data[3] == 'pending' %}
+                <span class="badge bg-warning fs-6">
+                    Pending Review
+                </span>
+                <p class="mt-2 text-muted">
+                    Your request is under review by the authority.
+                </p>
+
+            {% elif request_data[3] == 'paid' %}
+                <span class="badge bg-success fs-6">
+                    Approved & Paid
+                </span>
+                <p class="mt-2">
+                    Amount Sent: ₹{{ request_data[2] }}
+                </p>
+                <p>
+                    Approved On: {{ request_data[5] }}
+                </p>
+
+            {% elif request_data[3] == 'rejected' %}
+                <span class="badge bg-danger fs-6">
+                    Rejected
+                </span>
+                <p class="mt-2 text-muted">
+                    Unfortunately your request was not approved.
+                </p>
+            {% endif %}
+
+        </div>
+    </div>
+
+    {% else %}
+
+        <div class="alert alert-info mt-4">
+            You have not submitted any emergency request yet.
+        </div>
+
+        <a href="{{ url_for('auth.emergency_request') }}"
+           class="btn btn-danger">
+           Request Emergency Assistance
+        </a>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

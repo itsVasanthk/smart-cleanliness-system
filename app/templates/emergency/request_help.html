@@ -1,0 +1,51 @@
+{% extends "citizen_base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2>Emergency Travel Assistance 🆘</h2>
+
+    <div class="card p-4 shadow-sm mb-4">
+
+        <p class="text-muted">
+            Assistance is limited to ₹1000 and only for returning to your registered home town.
+            ID verification is mandatory. False claims will result in permanent ban.
+        </p>
+
+    </div>
+
+    <div class="card p-4 shadow-sm">
+
+        <form method="POST" enctype="multipart/form-data">
+
+            <div class="mb-3">
+                <label>Reason for Emergency</label>
+                <textarea name="reason" class="form-control" required></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label>Amount Requested (Max ₹1000)</label>
+                <input type="number" name="amount" class="form-control" required max="1000">
+            </div>
+
+            <div class="mb-3">
+                <label>Upload Aadhaar Image</label>
+                <input type="file" name="aadhaar_image" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label>Upload Live Selfie</label>
+                <input type="file" name="selfie_image" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn btn-danger">
+                Submit Request
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

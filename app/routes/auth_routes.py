@@ -5,6 +5,8 @@ from PIL import Image
 import imagehash
 import os
 from app import mysql
+from deepface import DeepFace
+
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -870,3 +872,277 @@ def food():
 @auth_bp.route("/awareness/guidelines")
 def guidelines():
     return render_template("awareness/guidelines.html")
+
+@auth_bp.route("/donate", methods=["GET", "POST"])
+def donate():
+
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+
+    if request.method == "POST":
+
+        try:
+            amount = float(request.form['amount'])
+
+            if amount <= 0:
+                flash("Invalid donation amount.", "danger")
+                return redirect(url_for('auth.donate'))
+
+            # Insert donation
+            cur.execute("""
+                INSERT INTO donations (user_id, amount)
+                VALUES (%s, %s)
+            """, (session['user_id'], amount))
+
+            # Update fund wallet
+            cur.execute("""
+                UPDATE fund_wallet
+                SET total_balance = total_balance + %s
+                WHERE id = 1
+            """, (amount,))
+
+            mysql.connection.commit()
+
+            flash("Thank you for your donation ❤️", "success")
+
+        except Exception as e:
+            flash("Something went wrong.", "danger")
+
+        return redirect(url_for('auth.donate'))
+
+    # Get wallet balance
+    cur.execute("SELECT total_balance FROM fund_wallet WHERE id = 1")
+    result = cur.fetchone()
+    total_balance = result[0] if result else 0
+
+    cur.close()
+
+    return render_template(
+        "emergency/donate.html",
+        total_balance=total_balance
+    )
+
+@auth_bp.route("/emergency/request", methods=["GET", "POST"])
+def emergency_request():
+
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+
+    # 🔒 Check if user already has active request
+    cur.execute("""
+        SELECT request_id, status
+        FROM emergency_requests
+        WHERE user_id=%s
+        AND status IN ('pending','paid')
+    """, (session['user_id'],))
+
+    existing = cur.fetchone()
+
+    if existing:
+        cur.close()
+        return redirect(url_for('auth.emergency_status'))
+
+    if request.method == "POST":
+
+        reason = request.form.get("reason")
+        amount_requested = float(request.form.get("amount"))
+
+        # 🚨 Cap amount to ₹1000
+        if amount_requested > 1000:
+            flash("Maximum assistance allowed is ₹1000.", "danger")
+            return redirect(url_for('auth.emergency_request'))
+
+        # Get uploaded images
+        aadhaar_image = request.files.get("aadhaar_image")
+        selfie_image = request.files.get("selfie_image")
+
+        if not aadhaar_image or not selfie_image:
+            flash("Both Aadhaar and Selfie images are required.", "danger")
+            return redirect(url_for('auth.emergency_request'))
+
+        # Save images
+        aadhaar_filename = secure_filename(aadhaar_image.filename)
+        selfie_filename = secure_filename(selfie_image.filename)
+
+        aadhaar_path = os.path.join(UPLOAD_FOLDER, aadhaar_filename)
+        selfie_path = os.path.join(UPLOAD_FOLDER, selfie_filename)
+
+        aadhaar_image.save(aadhaar_path)
+        selfie_image.save(selfie_path)
+
+        # 🤖 AI Verification
+        try:
+            result = DeepFace.verify(
+                img1_path=aadhaar_path,
+                img2_path=selfie_path,
+                model_name="VGG-Face",
+                enforce_detection=False
+            )
+
+            distance = result["distance"]
+            verified = result["verified"]
+
+        except Exception as e:
+            flash("Face verification failed. Try again.", "danger")
+            return redirect(url_for('auth.emergency_request'))
+
+        # 🔐 Threshold check (strict)
+        if distance > 0.60:
+            flash("Face verification failed. Identity mismatch.", "danger")
+            return redirect(url_for('auth.emergency_request'))
+
+        # Insert into DB
+        cur.execute("""
+            INSERT INTO emergency_requests
+            (user_id, reason, aadhaar_image, selfie_image,
+             amount_requested, ai_distance, status, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, 'pending', NOW())
+        """, (
+            session['user_id'],
+            reason,
+            aadhaar_filename,
+            selfie_filename,
+            amount_requested,
+            distance
+        ))
+
+        mysql.connection.commit()
+        cur.close()
+
+        flash("Emergency request submitted successfully.", "success")
+        return redirect(url_for('auth.emergency_status'))
+
+    cur.close()
+    return render_template("emergency/request_help.html")
+
+@auth_bp.route("/authority/emergency")
+def view_emergency_requests():
+
+    if 'role' not in session or session['role'] != 'authority':
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM emergency_requests")
+    requests = cur.fetchall()
+    cur.close()
+
+    return render_template("emergency/admin_requests.html",
+                           requests=requests)
+
+@auth_bp.route("/authority/emergency/approve/<int:request_id>", methods=["POST"])
+def approve_emergency(request_id):
+
+    if session.get('role') != 'authority':
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+
+    # Get request details including status
+    cur.execute("""
+        SELECT amount_requested, status
+        FROM emergency_requests
+        WHERE request_id=%s
+    """, (request_id,))
+    result = cur.fetchone()
+
+    if not result:
+        flash("Request not found.", "danger")
+        return redirect(url_for('auth.view_emergency_requests'))
+
+    amount = float(result[0])
+    status = result[1]
+
+    # 🚨 Lock check
+    if status != 'pending':
+        flash("This request cannot be modified.", "danger")
+        return redirect(url_for('auth.view_emergency_requests'))
+
+    # Check wallet balance
+    cur.execute("SELECT total_balance FROM fund_wallet WHERE id=1")
+    wallet = float(cur.fetchone()[0])
+
+    if wallet < amount:
+        flash("Insufficient fund balance.", "danger")
+        return redirect(url_for('auth.view_emergency_requests'))
+
+    # Deduct wallet
+    cur.execute("""
+        UPDATE fund_wallet
+        SET total_balance = total_balance - %s
+        WHERE id = 1
+    """, (amount,))
+
+    # Mark request as paid
+    cur.execute("""
+        UPDATE emergency_requests
+        SET status='paid', approved_at=NOW()
+        WHERE request_id=%s
+    """, (request_id,))
+
+    mysql.connection.commit()
+    cur.close()
+
+    flash("Emergency request approved and paid.", "success")
+    return redirect(url_for('auth.view_emergency_requests'))
+
+@auth_bp.route("/authority/emergency/reject/<int:request_id>", methods=["POST"])
+def reject_emergency(request_id):
+
+    if session.get('role') != 'authority':
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+
+    # Get current status
+    cur.execute("SELECT status FROM emergency_requests WHERE request_id=%s", (request_id,))
+    result = cur.fetchone()
+
+    if not result:
+        flash("Request not found.", "danger")
+        return redirect(url_for('auth.view_emergency_requests'))
+
+    status = result[0]
+
+    # 🚨 Prevent rejecting paid requests
+    if status != 'pending':
+        flash("This request cannot be modified.", "danger")
+        return redirect(url_for('auth.view_emergency_requests'))
+
+    cur.execute("""
+        UPDATE emergency_requests
+        SET status='rejected'
+        WHERE request_id=%s
+    """, (request_id,))
+
+    mysql.connection.commit()
+    cur.close()
+
+    flash("Emergency request rejected.", "warning")
+    return redirect(url_for('auth.view_emergency_requests'))
+
+@auth_bp.route("/emergency/status")
+def emergency_status():
+
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+
+    cur.execute("""
+        SELECT request_id, reason, amount_requested,
+               status, created_at, approved_at
+        FROM emergency_requests
+        WHERE user_id=%s
+        ORDER BY created_at DESC
+        LIMIT 1
+    """, (session['user_id'],))
+
+    request_data = cur.fetchone()
+    cur.close()
+
+    return render_template("emergency/status.html",
+                           request_data=request_data)
