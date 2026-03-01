@@ -1,0 +1,35 @@
+{% extends "authority_base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2>Fund Management 💰</h2>
+
+    <div class="row mt-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm p-4 text-center">
+                <h5>Total Donations Received</h5>
+                <h3 class="text-success">₹ {{ total_donations }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm p-4 text-center">
+                <h5>Total Emergency Paid</h5>
+                <h3 class="text-danger">₹ {{ total_paid }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm p-4 text-center">
+                <h5>Current Wallet Balance</h5>
+                <h3 class="text-primary">₹ {{ wallet_balance }}</h3>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

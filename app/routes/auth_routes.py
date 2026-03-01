@@ -1150,3 +1150,35 @@ def emergency_status():
     return render_template("emergency/status.html",
                            request_data=request_data)
 
+@auth_bp.route("/authority/fund")
+def authority_fund():
+
+    if 'user_id' not in session or session.get('role') != 'authority':
+        return redirect(url_for('auth.login'))
+
+    cur = mysql.connection.cursor()
+
+    # Total Donations
+    cur.execute("SELECT COALESCE(SUM(amount), 0) FROM donations")
+    total_donations = cur.fetchone()[0]
+
+    # Total Emergency Paid
+    cur.execute("""
+        SELECT COALESCE(SUM(amount_requested), 0)
+        FROM emergency_requests
+        WHERE status = 'paid'
+    """)
+    total_paid = cur.fetchone()[0]
+
+    # Current Wallet Balance
+    cur.execute("SELECT total_balance FROM fund_wallet WHERE id = 1")
+    wallet_balance = cur.fetchone()[0]
+
+    cur.close()
+
+    return render_template(
+        "authority_fund.html",
+        total_donations=total_donations,
+        total_paid=total_paid,
+        wallet_balance=wallet_balance
+    )
