@@ -1,35 +1,35 @@
 {% extends "citizen_base.html" %}
 {% block content %}
 
+
 <div class="container mt-4">
 
     <h2 class="mb-3">Support Stranded Visitors ❤️</h2>
 
     <div class="card p-4 shadow-sm mb-4">
-
         <h5>Community Emergency Fund</h5>
 
         <p class="text-muted">
             100% of donated funds are used exclusively to assist verified stranded visitors 
-            in returning safely to their hometown. No funds are used for administrative purposes.
+            in returning safely to their hometown.
         </p>
 
         <h4 class="text-success">
             Current Fund Balance: ₹{{ total_balance }}
         </h4>
-
     </div>
 
     <div class="card p-4 shadow-sm">
 
-        <form method="POST">
+        <!-- IMPORTANT: remove method="POST" -->
+        <form>
 
             <div class="mb-3">
                 <label>Donation Amount (₹)</label>
-                <input type="number" name="amount" class="form-control" required min="10">
+                <input type="number" id="amount" class="form-control" required min="10">
             </div>
 
-            <button type="submit" class="btn btn-success">
+            <button type="button" id="pay-btn" class="btn btn-success w-100">
                 Donate Now
             </button>
 
@@ -38,5 +38,59 @@
     </div>
 
 </div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.getElementById("pay-btn").onclick = async function () {
+
+    const amount = document.getElementById("amount").value;
+
+    if (!amount || amount <= 0) {
+        alert("Enter valid amount");
+        return;
+    }
+
+    // Create order
+    const response = await fetch("/create-order", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ amount: amount })
+    });
+
+    const order = await response.json();
+
+    const options = {
+        key: order.key,
+        amount: order.amount,
+        currency: "INR",
+        name: "CleanCITY",
+        description: "Donation",
+        order_id: order.order_id,
+        handler: function (response) {
+
+            fetch("/verify-payment", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(response)
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                window.location.reload();
+            });
+        },
+        theme: {
+            color: "#28a745"
+        }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+};
+</script>
 
 {% endblock %}

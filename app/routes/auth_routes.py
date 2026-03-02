@@ -3,10 +3,17 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from PIL import Image
 import imagehash
+import razorpay
 import os
+import hmac
+import hashlib
 from app import mysql
 from deepface import DeepFace
 
+razorpay_client = razorpay.Client(auth=(
+    os.getenv("RAZORPAY_KEY_ID"),
+    os.getenv("RAZORPAY_KEY_SECRET")
+))
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -866,7 +873,7 @@ def food():
 def guidelines():
     return render_template("awareness/guidelines.html")
 
-@auth_bp.route("/donate", methods=["GET", "POST"])
+@auth_bp.route("/donate")
 def donate():
 
     if 'user_id' not in session:
@@ -874,48 +881,12 @@ def donate():
 
     cur = mysql.connection.cursor()
 
-    if request.method == "POST":
-
-        try:
-            amount = float(request.form['amount'])
-
-            if amount <= 0:
-                flash("Invalid donation amount.", "danger")
-                return redirect(url_for('auth.donate'))
-
-            # Insert donation
-            cur.execute("""
-                INSERT INTO donations (user_id, amount)
-                VALUES (%s, %s)
-            """, (session['user_id'], amount))
-
-            # Update fund wallet
-            cur.execute("""
-                UPDATE fund_wallet
-                SET total_balance = total_balance + %s
-                WHERE id = 1
-            """, (amount,))
-
-            mysql.connection.commit()
-
-            flash("Thank you for your donation ❤️", "success")
-
-        except Exception as e:
-            flash("Something went wrong.", "danger")
-
-        return redirect(url_for('auth.donate'))
-
-    # Get wallet balance
-    cur.execute("SELECT total_balance FROM fund_wallet WHERE id = 1")
-    result = cur.fetchone()
-    total_balance = result[0] if result else 0
+    cur.execute("SELECT total_balance FROM fund_wallet WHERE id=1")
+    total_balance = cur.fetchone()[0]
 
     cur.close()
 
-    return render_template(
-        "emergency/donate.html",
-        total_balance=total_balance
-    )
+    return render_template("emergency/donate.html", total_balance=total_balance)
 
 @auth_bp.route("/emergency/request", methods=["GET", "POST"])
 def emergency_request():
@@ -1182,3 +1153,68 @@ def authority_fund():
         total_paid=total_paid,
         wallet_balance=wallet_balance
     )
+
+@auth_bp.route("/create-order", methods=["POST"])
+def create_order():
+
+    if 'user_id' not in session:
+        return {"error": "Unauthorized"}, 403
+
+    data = request.get_json()
+    amount = int(data.get("amount")) * 100  # Razorpay uses paise
+
+    order = razorpay_client.order.create({
+        "amount": amount,
+        "currency": "INR",
+        "payment_capture": 1
+    })
+
+    return {
+        "order_id": order["id"],
+        "amount": order["amount"],
+        "key": os.getenv("RAZORPAY_KEY_ID")
+    }
+
+@auth_bp.route("/verify-payment", methods=["POST"])
+def verify_payment():
+
+    data = request.get_json()
+
+    razorpay_order_id = data.get("razorpay_order_id")
+    razorpay_payment_id = data.get("razorpay_payment_id")
+    razorpay_signature = data.get("razorpay_signature")
+
+    generated_signature = hmac.new(
+        os.getenv("RAZORPAY_KEY_SECRET").encode(),
+        f"{razorpay_order_id}|{razorpay_payment_id}".encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    if generated_signature == razorpay_signature:
+
+        # ✅ PAYMENT VERIFIED
+
+        amount = razorpay_client.payment.fetch(razorpay_payment_id)["amount"] / 100
+
+        cur = mysql.connection.cursor()
+
+        # Insert donation record
+        cur.execute("""
+            INSERT INTO donations (user_id, amount)
+            VALUES (%s, %s)
+        """, (session["user_id"], amount))
+
+        # Update wallet
+        cur.execute("""
+            UPDATE fund_wallet
+            SET total_balance = total_balance + %s
+            WHERE id = 1
+        """, (amount,))
+
+        mysql.connection.commit()
+        cur.close()
+
+        return {"message": "Payment successful and wallet updated!"}
+
+    else:
+        return {"message": "Payment verification failed!"}
