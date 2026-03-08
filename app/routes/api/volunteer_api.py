@@ -183,3 +183,28 @@ def transport_complete():
     
     cur.close()
     return jsonify({"success": False, "message": "Assignment not found"}), 404
+
+# ---------------- LEADERBOARD ----------------
+@api_volunteer_bp.route("/volunteer/leaderboard", methods=["GET"])
+def get_leaderboard():
+    cur = mysql.connection.cursor()
+    
+    # Aggregate total points per user from carbon_credits table
+    cur.execute("""
+        SELECT u.name, COALESCE(SUM(cc.points), 0) as total_points
+        FROM users u
+        JOIN volunteers v ON u.user_id = v.user_id
+        LEFT JOIN carbon_credits cc ON v.volunteer_id = cc.volunteer_id
+        GROUP BY u.user_id, u.name
+        ORDER BY total_points DESC
+        LIMIT 10
+    """)
+    leaderboard_data = cur.fetchall()
+    cur.close()
+
+    leaderboard = [
+        {"name": row[0], "points": int(row[1]), "rank": i + 1}
+        for i, row in enumerate(leaderboard_data)
+    ]
+    
+    return jsonify(leaderboard)
