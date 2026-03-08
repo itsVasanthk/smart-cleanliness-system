@@ -5,3 +5,19 @@ __pycache__/
 instance/
 *.db
 .DS_Store
+
+# Static Uploads
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+
+# Mobile Dependencies
+mobile/node_modules/
+mobile/.expo/
+mobile/web-build/
+
+# Design Files & Test Images
+*.png
+*.jpg
+*.jpeg
+test_duplicate.py
+test_image.jpg

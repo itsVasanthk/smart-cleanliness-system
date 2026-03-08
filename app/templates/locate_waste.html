@@ -2,11 +2,65 @@
 
 {% block content %}
 
-<h2>📍 Locate Nearby Waste Disposal Areas</h2>
+<h2 class="mb-4">📍 Locate Nearby Waste Disposal Areas</h2>
 
-<div class="card p-4">
-    <p>This feature is under development.</p>
-    <p>It will help citizens and volunteers find official waste disposal locations.</p>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<div class="card p-3 shadow-sm">
+
+```
+<p class="text-muted">
+    This map shows your current location and nearby waste disposal areas.
+</p>
+
+<div id="map" style="height:500px;width:100%;border-radius:10px;"></div>
+```
+
 </div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+
+let map;
+
+function initMap(lat, lng){
+
+    map = L.map('map').setView([lat, lng], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // User location marker
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup("📍 You are here")
+        .openPopup();
+}
+
+function getLocation(){
+
+    if(navigator.geolocation){
+
+        navigator.geolocation.getCurrentPosition(function(position){
+
+            let lat = position.coords.latitude;
+            let lng = position.coords.longitude;
+
+            initMap(lat, lng);
+
+        }, function(){
+            alert("Location permission denied");
+        });
+
+    }else{
+        alert("Geolocation is not supported by this browser.");
+    }
+
+}
+
+getLocation();
+
+</script>
 
 {% endblock %}
