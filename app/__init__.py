@@ -46,4 +46,7 @@ def create_app():
     from app.routes.api.emergency_api import api_emergency_bp
     app.register_blueprint(api_emergency_bp, url_prefix='/api')
 
+    from app.routes.api.locate_api import api_locate_bp
+    app.register_blueprint(api_locate_bp, url_prefix='/api')
+
     return app
