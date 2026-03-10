@@ -49,4 +49,7 @@ def create_app():
     from app.routes.api.locate_api import api_locate_bp
     app.register_blueprint(api_locate_bp, url_prefix='/api')
 
+    from app.routes.api.admin_api import api_admin_bp
+    app.register_blueprint(api_admin_bp, url_prefix='/api')
+
     return app

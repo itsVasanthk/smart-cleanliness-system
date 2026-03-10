@@ -17,7 +17,8 @@ def api_citizen_reports(user_id):
         cur.execute(
             """
             SELECT complaint_id, garbage_type, description, status, image,
-                   area, pincode, created_at
+                   area, pincode, created_at, authority_decision, authority_reason,
+                   citizen_feedback, citizen_rating, escalated_to_admin, landmark
             FROM complaints
             WHERE user_id = %s
             ORDER BY created_at DESC
@@ -37,7 +38,13 @@ def api_citizen_reports(user_id):
                 "image": c[4],
                 "area": c[5],
                 "pincode": c[6],
-                "created_at": c[7].strftime("%Y-%m-%d %H:%M:%S") if c[7] else None
+                "created_at": c[7].strftime("%Y-%m-%d %H:%M:%S") if c[7] else None,
+                "authority_decision": c[8],
+                "authority_reason": c[9],
+                "citizen_feedback": c[10],
+                "citizen_rating": c[11],
+                "escalated_to_admin": bool(c[12]),
+                "landmark": c[13]
             })
 
         return jsonify({"success": True, "reports": complaints_list})
@@ -71,7 +78,6 @@ def api_report():
 
     if image and image.filename != "":
         filename = secure_filename(image.filename)
-        # To avoid overwriting existing images with the same name, better to prepend something unique if needed.
         image_path = os.path.join(UPLOAD_FOLDER, filename)
         
         try:
@@ -125,43 +131,118 @@ def api_report():
     except Exception as e:
          return jsonify({"success": False, "message": str(e)}), 500
 
+@api_complaints_bp.route("/report/edit/<int:complaint_id>", methods=["PUT"])
+def api_edit_report(complaint_id):
+    try:
+        cur = mysql.connection.cursor()
+        # Verify status - can only edit if Pending and Authority hasn't decided
+        cur.execute("SELECT status, authority_decision FROM complaints WHERE complaint_id=%s", (complaint_id,))
+        result = cur.fetchone()
+        if not result:
+            return jsonify({"success": False, "message": "Report not found"}), 404
+            
+        if result[0] != 'Pending' or result[1] != 'pending':
+            return jsonify({"success": False, "message": "Cannot edit a report that is already under process or decided by authority"}), 400
+
+        garbage_type = request.form.get('garbage_type')
+        other_description = request.form.get('other_description')
+        area = request.form.get('area')
+        pincode = request.form.get('pincode')
+        landmark = request.form.get('landmark')
+        
+        if garbage_type == "Other":
+            description = other_description.strip() if other_description else "Other waste reported"
+        else:
+            description = garbage_type
+
+        image = request.files.get('image')
+        image_name = None
+        
+        if image and image.filename != "":
+            filename = secure_filename(image.filename)
+            image_path = os.path.join(UPLOAD_FOLDER, filename)
+            image.save(image_path)
+            image_name = filename
+            
+        if image_name:
+            cur.execute("""
+                UPDATE complaints 
+                SET garbage_type=%s, description=%s, area=%s, pincode=%s, landmark=%s, image=%s
+                WHERE complaint_id=%s
+            """, (garbage_type, description, area, pincode, landmark, image_name, complaint_id))
+        else:
+            cur.execute("""
+                UPDATE complaints 
+                SET garbage_type=%s, description=%s, area=%s, pincode=%s, landmark=%s
+                WHERE complaint_id=%s
+            """, (garbage_type, description, area, pincode, landmark, complaint_id))
+            
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({"success": True, "message": "Report updated successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@api_complaints_bp.route("/report/feedback", methods=["POST"])
+def api_submit_feedback():
+    data = request.json
+    complaint_id = data.get('complaint_id')
+    feedback = data.get('feedback')
+    rating = data.get('rating')
+    
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            UPDATE complaints 
+            SET citizen_feedback=%s, citizen_rating=%s 
+            WHERE complaint_id=%s
+        """, (feedback, rating, complaint_id))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({"success": True, "message": "Feedback submitted successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
 @api_complaints_bp.route("/citizen/dashboard/<int:user_id>", methods=["GET"])
 def api_citizen_dashboard(user_id):
     try:
-        # Re-using the logic from the web app for calculating logic
         cur = mysql.connection.cursor()
+        
+        # Global Stats (Madurai Status)
         cur.execute("SELECT COUNT(*) FROM complaints")
         total_reports = cur.fetchone()[0]
-
-        cur.execute("SELECT COUNT(*) FROM complaints WHERE status = 'resolved'")
+        
+        cur.execute("SELECT COUNT(*) FROM complaints WHERE status = 'Resolved'")
         resolved_reports = cur.fetchone()[0]
-
-        cur.execute("SELECT COUNT(*) FROM complaints WHERE status = 'pending'")
+        
+        cur.execute("SELECT COUNT(*) FROM complaints WHERE status = 'Pending'")
         pending_reports = cur.fetchone()[0]
+
+        # User Specific Stats (Optional for future use)
+        cur.execute("SELECT COUNT(*) FROM complaints WHERE user_id = %s", (user_id,))
+        user_total = cur.fetchone()[0]
+
+        cur.execute("SELECT COUNT(*) FROM complaints WHERE user_id = %s AND status = 'Resolved'", (user_id,))
+        user_resolved = cur.fetchone()[0]
+
         cur.close()
 
-        if total_reports > 0:
-            resolved_percent = (resolved_reports / total_reports) * 100
-        else:
-            resolved_percent = 0
-
-        if resolved_percent >= 70:
-            emotion = "happy"
-            slogan = "Madurai is becoming cleaner! Your contribution is amazing!"
-        elif resolved_percent >= 40:
-            emotion = "neutral"
-            slogan = "Together, we can make Madurai cleaner!"
-        else:
-            emotion = "sad"
-            slogan = "Madurai needs your help! Act now!"
+        # Emotion/Slogan based on GLOBAL Madurai performance
+        resolved_percent = (resolved_reports / total_reports * 100) if total_reports > 0 else 0
+        emotion = "happy" if resolved_percent >= 70 else "neutral" if resolved_percent >= 40 else "sad"
+        slogan = "Madurai is looking great!" if emotion == "happy" else "Let's keep Madurai clean!" if emotion == "neutral" else "Madurai needs our help!"
 
         return jsonify({
             "success": True, 
-            "total_reports": total_reports,
-            "resolved_reports": resolved_reports,
-            "pending_reports": pending_reports,
+            "total_reports": total_reports, # Global
+            "resolved_reports": resolved_reports, # Global
+            "pending_reports": pending_reports, # Global
+            "user_total": user_total,
+            "user_resolved": user_resolved,
             "emotion": emotion,
             "slogan": slogan
         })
+    except Exception as e:
+         return jsonify({"success": False, "message": str(e)}), 500
     except Exception as e:
          return jsonify({"success": False, "message": str(e)}), 500
