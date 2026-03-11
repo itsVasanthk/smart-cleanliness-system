@@ -215,7 +215,7 @@ def api_citizen_dashboard(user_id):
         cur.execute("SELECT COUNT(*) FROM complaints WHERE status = 'Resolved'")
         resolved_reports = cur.fetchone()[0]
         
-        cur.execute("SELECT COUNT(*) FROM complaints WHERE status = 'Pending'")
+        cur.execute("SELECT COUNT(*) FROM complaints WHERE status != 'Resolved'")
         pending_reports = cur.fetchone()[0]
 
         # User Specific Stats (Optional for future use)
