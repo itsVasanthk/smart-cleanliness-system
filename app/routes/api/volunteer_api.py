@@ -79,12 +79,13 @@ def get_volunteer_stats(user_id):
         "transport_assignments": transport_assignments
     })
 
-# ---------------- LIST CLEANING EVENTS ----------------
+# ---------------- LIST CLEANING EVENTS & TASKS ----------------
 @api_volunteer_bp.route("/volunteer/events", methods=["GET"])
 def get_events():
     user_id = request.args.get('user_id', type=int)
     cur = mysql.connection.cursor()
     
+    # Fetch regular events
     cur.execute("""
         SELECT event_id, title, area, description, event_date, credit_points, status
         FROM cleaning_events
@@ -92,14 +93,30 @@ def get_events():
     """)
     events_data = cur.fetchall()
     
+    # Fetch specialized tasks (Awaiting Volunteers)
+    cur.execute("""
+        SELECT complaint_id, garbage_type, area, description, created_at, status
+        FROM complaints
+        WHERE status = 'Awaiting Volunteers'
+        ORDER BY created_at DESC
+    """)
+    tasks_data = cur.fetchall()
+    
     joined_event_ids = []
+    joined_task_ids = []
+    
     if user_id:
         cur.execute("SELECT event_id FROM event_participants WHERE user_id=%s", (user_id,))
-        joined = cur.fetchall()
-        joined_event_ids = [e[0] for e in joined]
+        joined_event_ids = [e[0] for e in cur.fetchall()]
+        
+        cur.execute("SELECT complaint_id FROM complaint_volunteers WHERE user_id=%s", (user_id,))
+        joined_task_ids = [t[0] for t in cur.fetchall()]
     
-    events = [
-        {
+    combined_list = []
+    
+    # Add events
+    for e in events_data:
+        combined_list.append({
             "id": e[0],
             "title": e[1],
             "area": e[2],
@@ -107,12 +124,57 @@ def get_events():
             "date": e[4].strftime("%Y-%m-%d"),
             "points": e[5],
             "status": e[6],
-            "is_joined": e[0] in joined_event_ids
-        } for e in events_data
-    ]
+            "is_joined": e[0] in joined_event_ids,
+            "item_type": "event"
+        })
+        
+    # Add tasks
+    for t in tasks_data:
+        combined_list.append({
+            "id": t[0],
+            "title": f"Cleanup Task: {t[1]}",
+            "area": t[2],
+            "description": t[3],
+            "date": t[4].strftime("%Y-%m-%d"),
+            "points": 50, # Fixed points for individual tasks
+            "status": t[5],
+            "is_joined": t[0] in joined_task_ids,
+            "item_type": "task"
+        })
     
     cur.close()
-    return jsonify(events)
+    return jsonify(combined_list)
+
+@api_volunteer_bp.route("/volunteer/join_task", methods=["POST"])
+def join_task():
+    data = request.json
+    user_id = data.get('user_id')
+    complaint_id = data.get('complaint_id')
+    
+    cur = mysql.connection.cursor()
+    try:
+        # Ensure user has a volunteer profile
+        cur.execute("SELECT volunteer_id FROM volunteers WHERE user_id=%s", (user_id,))
+        volunteer = cur.fetchone()
+        if not volunteer:
+            cur.execute("INSERT INTO volunteers (user_id, has_vehicle) VALUES (%s, FALSE)", (user_id,))
+            mysql.connection.commit()
+            cur.execute("SELECT volunteer_id FROM volunteers WHERE user_id=%s", (user_id,))
+            volunteer = cur.fetchone()
+        
+        volunteer_id = volunteer[0]
+
+        cur.execute("SELECT id FROM complaint_volunteers WHERE complaint_id=%s AND user_id=%s", (complaint_id, user_id))
+        if cur.fetchone():
+            cur.close()
+            return jsonify({"success": False, "message": "Already joined this task"}), 400
+            
+        cur.execute("INSERT INTO complaint_volunteers (complaint_id, user_id) VALUES (%s, %s)", (complaint_id, user_id))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({"success": True, "message": "Joined cleanup task successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
 # ---------------- JOIN EVENT ----------------
 @api_volunteer_bp.route("/volunteer/join", methods=["POST"])

@@ -73,7 +73,7 @@ def authority_decide():
     decision = data.get('decision') # 'agreed' or 'disagreed'
     reason = data.get('reason', '')
     
-    if decision not in ['agreed', 'disagreed']:
+    if decision not in ['agreed', 'disagreed', 'resolved']:
         return jsonify({"success": False, "message": "Invalid decision"}), 400
         
     cur = mysql.connection.cursor()
@@ -86,6 +86,13 @@ def authority_decide():
                 SET authority_decision=%s, status='Under Process'
                 WHERE complaint_id=%s
             """, (decision, complaint_id))
+        elif decision == 'resolved':
+            # Authority marks as resolved directly
+            cur.execute("""
+                UPDATE complaints 
+                SET status='Resolved'
+                WHERE complaint_id=%s
+            """, (complaint_id,))
         else:
             # If disagreed, it describes reason and is escalated to admin
             cur.execute("""

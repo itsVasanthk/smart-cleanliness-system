@@ -40,14 +40,16 @@ def get_escalated_complaints():
     cur = mysql.connection.cursor()
     
     # Logic: Explicitly escalated OR older than 48h and still pending
+    # Also return the count of volunteers joined for each report
     cur.execute("""
-        SELECT complaint_id, garbage_type, description, image, area, 
-               pincode, landmark, status, created_at, transport_status,
-               authority_decision, authority_reason, escalated_at
-        FROM complaints
-        WHERE escalated_to_admin = TRUE 
-           OR (status = 'pending' AND created_at < NOW() - INTERVAL 48 HOUR)
-        ORDER BY created_at DESC
+        SELECT c.complaint_id, c.garbage_type, c.description, c.image, c.area, 
+               c.pincode, c.landmark, c.status, c.created_at, c.transport_status,
+               c.authority_decision, c.authority_reason, c.escalated_at,
+               (SELECT COUNT(*) FROM complaint_volunteers cv WHERE cv.complaint_id = c.complaint_id) as volunteer_count
+        FROM complaints c
+        WHERE c.escalated_to_admin = TRUE 
+           OR (c.status = 'pending' AND c.created_at < NOW() - INTERVAL 48 HOUR)
+        ORDER BY c.created_at DESC
     """)
     complaints_data = cur.fetchall()
     
@@ -65,12 +67,53 @@ def get_escalated_complaints():
             "transport_status": c[9],
             "authority_decision": c[10],
             "authority_reason": c[11],
-            "escalated_at": c[12].strftime("%Y-%m-%d %H:%M:%S") if c[12] else None
+            "escalated_at": c[12].strftime("%Y-%m-%d %H:%M:%S") if c[12] else None,
+            "volunteer_count": c[13]
         } for c in complaints_data
     ]
     
     cur.close()
     return jsonify(complaints)
+
+@api_admin_bp.route("/admin/escalate_to_hub", methods=["POST"])
+def escalate_to_hub():
+    data = request.json
+    complaint_id = data.get('complaint_id')
+    
+    cur = mysql.connection.cursor()
+    try:
+        cur.execute("UPDATE complaints SET status='Awaiting Volunteers' WHERE complaint_id=%s", (complaint_id,))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({"success": True, "message": "Report escalated to Volunteer Hub"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@api_admin_bp.route("/admin/complaints/<int:complaint_id>/volunteers", methods=["GET"])
+def get_joined_volunteers(complaint_id):
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT v.volunteer_id, u.name, cv.joined_at, v.vehicle_type, v.vehicle_number
+        FROM complaint_volunteers cv
+        JOIN users u ON cv.user_id = u.user_id
+        JOIN volunteers v ON u.user_id = v.user_id
+        WHERE cv.complaint_id = %s
+        ORDER BY cv.joined_at DESC
+    """, (complaint_id,))
+    volunteers_data = cur.fetchall()
+    
+    volunteers = [
+        {
+            "volunteer_id": v[0],
+            "name": v[1],
+            "joined_at": v[2].strftime("%Y-%m-%d %H:%M:%S"),
+            "vehicle_type": v[3],
+            "vehicle_number": v[4]
+        } for v in volunteers_data
+    ]
+    
+    cur.close()
+    return jsonify(volunteers)
 
 # ---------------- MANAGE VEHICLES (Moved from Authority) ----------------
 @api_admin_bp.route("/admin/vehicles/available", methods=["GET"])
